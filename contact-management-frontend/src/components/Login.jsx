@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { getCsrfToken } from '../csrf';
 import { useAuth } from './AuthContext';
 
 export default function Login() {
@@ -28,9 +29,11 @@ export default function Login() {
         const loginData = { username, password };
 
         try {
-            const response = await axios.post('http://localhost:8081/login', loginData, {
-                withCredentials: true
+            const response = await axios.post('/api/login', loginData, {
+                withCredentials: true,
+                headers: { 'X-XSRF-TOKEN': getCsrfToken() }
             });
+
             if (response.status === 200) {
                 login();
                 navigate('/loginSuccess');

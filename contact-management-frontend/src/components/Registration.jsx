@@ -1,6 +1,8 @@
 import axios from 'axios'
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { getCsrfToken } from '../csrf';
+
 import {
     Card,
     CardHeader,
@@ -44,7 +46,11 @@ export default function Registration() {
 
         try {
             const { confirmPassword, ...payload } = formData;
-            const response = await axios.post('http://localhost:8081/register', payload);
+            
+            const response = await axios.post('/api/register', payload, {
+                withCredentials: true,
+                headers: { 'X-XSRF-TOKEN': getCsrfToken() }
+            });
 
             if (response.status === 201) {
                 navigate('/registrationSuccess')

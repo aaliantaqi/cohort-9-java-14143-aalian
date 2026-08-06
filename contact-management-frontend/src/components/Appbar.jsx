@@ -8,15 +8,25 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { getCsrfToken } from '../csrf';
 
 export default function ButtonAppBar() {
 
   const { logout } = useAuth()
   const navigate = useNavigate();
 
-  const logoutUser = () => {
-    logout()
-    navigate("/login")
+  const logoutUser = async () => {
+    try {
+      await axios.post('/api/logout', {}, {
+    withCredentials: true,
+    headers: { 'X-XSRF-TOKEN': getCsrfToken() }
+});
+      logout();
+      navigate("/login");
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   }
 
   return (
