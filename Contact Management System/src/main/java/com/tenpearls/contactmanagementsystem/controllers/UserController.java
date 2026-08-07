@@ -59,8 +59,7 @@ public class UserController {
     @PutMapping("/user/{id}")
     public ResponseEntity<User> updateUser(@RequestBody User user, @PathVariable("id") Integer id){
         try {
-            user.setId(id);
-            User updated = userService.updateUser(user);
+            User updated = userService.updateUser(id, user);
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -132,7 +131,7 @@ public class UserController {
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         } catch (Exception e) {
-            logger.error("Unexpected error during login for username: {}", loginRequest.getUsername(), e);
+            logger.error("Unexpected error during login", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unknown error occurred");
         }
     }

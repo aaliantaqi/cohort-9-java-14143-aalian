@@ -4,6 +4,7 @@ import com.tenpearls.contactmanagementsystem.model.User;
 import com.tenpearls.contactmanagementsystem.model.UserRegistrationRequest;
 import com.tenpearls.contactmanagementsystem.repositories.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,16 +29,19 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
-    public User updateUser(User user) {
-        if (!userRepository.existsById(user.getId())) {
-            throw new RuntimeException("User not found with id: " + user.getId());
+    public User updateUser(Integer id, User updatedData) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        existingUser.setFirstname(updatedData.getFirstname());
+        existingUser.setLastname(updatedData.getLastname());
+        existingUser.setUsername(updatedData.getUsername());
+
+        if (updatedData.getPassword() != null && !updatedData.getPassword().isEmpty()) {
+            existingUser.setPassword(bCryptPasswordEncoder.encode(updatedData.getPassword()));
         }
 
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        }
-
-        return userRepository.save(user);
+        return userRepository.save(existingUser);
     }
 
     public void deleteUser(Integer id){
@@ -57,6 +61,11 @@ public class UserService {
         user.setLastname(request.getLastname());
         user.setUsername(request.getUsername());
         user.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
-        return userRepository.save(user);
+
+        try {
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Username already exists: " + request.getUsername());
+        }
     }
 }

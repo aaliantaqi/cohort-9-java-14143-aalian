@@ -12,9 +12,11 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
 
-  useEffect(() => {
-        axios.get('/api/csrf-token', { withCredentials: true }).catch(() => {});
-  }, []);
+    useEffect(() => {
+        axios.get('/api/csrf-token', { withCredentials: true }).catch((error) => {
+            console.error('Failed to initialize CSRF token:', error);
+        });
+    }, []);
 
   return (
     <div className="App">

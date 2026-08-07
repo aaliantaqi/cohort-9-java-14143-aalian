@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuthStatus = async () => {
         try {
-           const response = await axios.get('/api/me', { withCredentials: true });
+            const response = await axios.get('/api/me', { withCredentials: true });
             setIsAuthenticated(response.status === 200);
         } catch (error) {
             setIsAuthenticated(false);
@@ -26,10 +26,12 @@ export const AuthProvider = ({ children }) => {
 
     const login = () => {
         setIsAuthenticated(true);
+        setLoading(false);
     };
 
     const logout = () => {
         setIsAuthenticated(false);
+        setLoading(false);
     };
 
     return (
