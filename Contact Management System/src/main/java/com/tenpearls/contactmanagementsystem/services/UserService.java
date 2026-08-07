@@ -33,6 +33,11 @@ public class UserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
+        User userWithSameUsername = userRepository.findByUsername(updatedData.getUsername());
+        if (userWithSameUsername != null && userWithSameUsername.getId() != id) {
+            throw new IllegalArgumentException("Username already exists: " + updatedData.getUsername());
+        }
+
         existingUser.setFirstname(updatedData.getFirstname());
         existingUser.setLastname(updatedData.getLastname());
         existingUser.setUsername(updatedData.getUsername());

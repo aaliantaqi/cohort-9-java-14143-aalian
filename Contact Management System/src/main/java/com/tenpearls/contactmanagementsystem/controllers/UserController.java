@@ -57,10 +57,12 @@ public class UserController {
     }
 
     @PutMapping("/user/{id}")
-    public ResponseEntity<User> updateUser(@RequestBody User user, @PathVariable("id") Integer id){
+    public ResponseEntity<?> updateUser(@RequestBody User user, @PathVariable("id") Integer id){
         try {
             User updated = userService.updateUser(id, user);
             return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
