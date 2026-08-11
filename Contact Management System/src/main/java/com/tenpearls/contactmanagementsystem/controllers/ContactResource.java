@@ -14,6 +14,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 import static com.tenpearls.contactmanagementsystem.constant.Constant.PHOTO_DIRECTORY;
 import static org.springframework.util.MimeTypeUtils.IMAGE_JPEG_VALUE;
@@ -32,38 +33,73 @@ public class ContactResource {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Contact>> getContacts(@RequestParam(value = "page", defaultValue = "0") int page,
-                                                     @RequestParam(value = "size", defaultValue = "10") int size,
-                                                     Authentication authentication){
-        return ResponseEntity.ok().body(contactService.getAllContacts(authentication.getName(), page, size));
+    public ResponseEntity<?> getContacts(@RequestParam(value = "page", defaultValue = "0") int page,
+                                         @RequestParam(value = "size", defaultValue = "10") int size,
+                                         Authentication authentication){
+        try {
+            return ResponseEntity.ok().body(contactService.getAllContacts(authentication.getName(), page, size));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Contact> getContact(@PathVariable("id") String id, Authentication authentication) {
         try {
             return ResponseEntity.ok().body(contactService.getContact(id, authentication.getName()));
-        } catch (RuntimeException e) {
+        } catch (ContactService.ContactNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @PutMapping("/photo")
-    public ResponseEntity<String> uploadPhoto(@RequestParam("id") String id,
-                                              @RequestParam("file") MultipartFile file,
-                                              Authentication authentication) {
-        return ResponseEntity.ok().body(contactService.uploadPhoto(id, authentication.getName(), file));
+    public ResponseEntity<?> uploadPhoto(@RequestParam("id") String id,
+                                         @RequestParam("file") MultipartFile file,
+                                         Authentication authentication) {
+        try {
+            String photoUrl = contactService.uploadPhoto(id, authentication.getName(), file);
+            return ResponseEntity.ok().body(photoUrl);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (ContactService.ContactNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    @GetMapping(path = "/image/{filename}", produces = {IMAGE_PNG_VALUE, IMAGE_JPEG_VALUE})
-    public byte[] getPhoto(@PathVariable("filename") String filename) throws IOException {
-        Path fileStorageLocation = Paths.get(PHOTO_DIRECTORY).toAbsolutePath().normalize();
-        Path filePath = fileStorageLocation.resolve(filename).normalize();
-
-        if (!filePath.startsWith(fileStorageLocation)) {
-            throw new SecurityException("Invalid file path");
+    @GetMapping(path = "/{id}/image", produces = {IMAGE_PNG_VALUE, IMAGE_JPEG_VALUE})
+    public ResponseEntity<byte[]> getPhotoByContactId(@PathVariable("id") String id, Authentication authentication) throws IOException {
+        Contact contact;
+        try {
+            contact = contactService.getContact(id, authentication.getName());
+        } catch (ContactService.ContactNotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
 
-        return Files.readAllBytes(filePath);
+        if (contact.getPhotoUrl() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Path fileStorageLocation = Paths.get(PHOTO_DIRECTORY).toAbsolutePath().normalize();
+
+        Path filePath;
+        try (Stream<Path> files = Files.list(fileStorageLocation)) {
+            filePath = files
+                    .filter(p -> p.getFileName().toString().startsWith(id + "."))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (filePath == null || !filePath.normalize().startsWith(fileStorageLocation)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String contentType = filePath.toString().toLowerCase().endsWith(".png")
+                ? IMAGE_PNG_VALUE
+                : IMAGE_JPEG_VALUE;
+
+        return ResponseEntity.ok()
+                .header("Content-Type", contentType)
+                .body(Files.readAllBytes(filePath));
     }
 
     @DeleteMapping("/{id}")
@@ -71,8 +107,21 @@ public class ContactResource {
         try {
             contactService.deleteContact(id, authentication.getName());
             return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
+        } catch (ContactService.ContactNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Contact> updateContact(@PathVariable("id") String id,
+                                                 @RequestBody Contact contact,
+                                                 Authentication authentication) {
+        try {
+            Contact updated = contactService.updateContact(id, contact, authentication.getName());
+            return ResponseEntity.ok(updated);
+        } catch (ContactService.ContactNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }

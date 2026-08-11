@@ -17,6 +17,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -28,19 +29,36 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 @Slf4j
 @Transactional(rollbackOn = Exception.class)
 @RequiredArgsConstructor
+
 public class ContactService {
     private final ContactRepo contactRepo;
     private final UserRepository userRepository;
 
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/jpeg", "image/png");
+
+    public class ContactNotFoundException extends RuntimeException {
+        public ContactNotFoundException(String message) {
+            super(message);
+        }
+    }
+
     public Page<Contact> getAllContacts(String username, int page, int size) {
+        if (page < 0) {
+            throw new IllegalArgumentException("Page number cannot be negative");
+        }
+        if (size <= 0 || size > 100) {
+            throw new IllegalArgumentException("Size must be between 1 and 100");
+        }
         User owner = getOwner(username);
         return contactRepo.findByOwnerId(owner.getId(), PageRequest.of(page, size, Sort.by("name")));
     }
 
+
     public Contact getContact(String id, String username) {
         User owner = getOwner(username);
         return contactRepo.findByIdAndOwnerId(id, owner.getId())
-                .orElseThrow(() -> new RuntimeException("Contact Not Found!"));
+                .orElseThrow(() -> new ContactNotFoundException("Contact Not Found!"));
     }
 
     public Contact createContact(Contact contact, String username) {
@@ -49,7 +67,18 @@ public class ContactService {
         return contactRepo.save(contact);
     }
 
+
     public String uploadPhoto(String id, String username, MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be empty");
+        }
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new IllegalArgumentException("File size exceeds maximum allowed (5MB)");
+        }
+        if (!ALLOWED_CONTENT_TYPES.contains(file.getContentType())) {
+            throw new IllegalArgumentException("Only JPEG and PNG images are allowed");
+        }
+
         log.info("Saving Picture for contact ID: {}", id);
         Contact contact = getContact(id, username);
         String photoUrl = photoFunction.apply(id, file);
@@ -84,10 +113,24 @@ public class ContactService {
             Files.copy(image.getInputStream(), fileStorageLocation.resolve(filename), REPLACE_EXISTING);
             return ServletUriComponentsBuilder
                     .fromCurrentContextPath()
-                    .path("/contacts/image/" + filename)
+                    .path("/contacts/" + id + "/image")
                     .toUriString();
         } catch (Exception e) {
             throw new RuntimeException("Unable to Save Image", e);
         }
     };
+
+    public Contact updateContact(String id, Contact updatedData, String username) {
+        Contact existingContact = getContact(id, username);
+
+        existingContact.setName(updatedData.getName());
+        existingContact.setPhone(updatedData.getPhone());
+        existingContact.setEmail(updatedData.getEmail());
+        existingContact.setTitle(updatedData.getTitle());
+        existingContact.setStatus(updatedData.getStatus());
+        existingContact.setAddress(updatedData.getAddress());
+
+        return contactRepo.save(existingContact);
+    }
+
 }

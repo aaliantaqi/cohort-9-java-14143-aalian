@@ -45,7 +45,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/login").permitAll()
                         .requestMatchers("/api/register").permitAll()
                         .requestMatchers("/api/csrf-token").permitAll()
-                        .requestMatchers("/contacts/image/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .build();
