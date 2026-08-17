@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface ContactRepo extends JpaRepository<Contact, String> {
     Page<Contact> findByOwnerId(int userId, Pageable pageable);
     Optional<Contact> findByIdAndOwnerId(String id, int userId);
+    Page<Contact> findByOwnerIdAndNameContainingIgnoreCase(Integer ownerId, String name, Pageable pageable);
 
 }
 

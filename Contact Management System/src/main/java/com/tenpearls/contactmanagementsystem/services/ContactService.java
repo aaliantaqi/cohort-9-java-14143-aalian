@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static com.tenpearls.contactmanagementsystem.constant.Constant.PHOTO_DIRECTORY;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -43,7 +45,7 @@ public class ContactService {
         }
     }
 
-    public Page<Contact> getAllContacts(String username, int page, int size) {
+    public Page<Contact> getAllContacts(String username, int page, int size, String search) {
         if (page < 0) {
             throw new IllegalArgumentException("Page number cannot be negative");
         }
@@ -51,6 +53,10 @@ public class ContactService {
             throw new IllegalArgumentException("Size must be between 1 and 100");
         }
         User owner = getOwner(username);
+
+        if (search != null && !search.isBlank()) {
+            return contactRepo.findByOwnerIdAndNameContainingIgnoreCase(owner.getId(), search.trim(), PageRequest.of(page, size, Sort.by("name")));
+        }
         return contactRepo.findByOwnerId(owner.getId(), PageRequest.of(page, size, Sort.by("name")));
     }
 
@@ -64,7 +70,9 @@ public class ContactService {
     public Contact createContact(Contact contact, String username) {
         User owner = getOwner(username);
         contact.setOwner(owner);
-        return contactRepo.save(contact);
+        Contact saved = contactRepo.save(contact);
+        log.info("Contact '{}' created by user '{}'", saved.getName(), username);
+        return saved;
     }
 
 
@@ -90,6 +98,7 @@ public class ContactService {
     public void deleteContact(String id, String username) {
         Contact contact = getContact(id, username);
         contactRepo.delete(contact);
+        log.info("Contact '{}' (id={}) deleted by user '{}'", contact.getName(), id, username);
     }
 
     private User getOwner(String username) {
@@ -100,16 +109,30 @@ public class ContactService {
         return user;
     }
 
-    private final Function<String, String> fileExtension = filename -> Optional.of(filename).filter(name -> name.contains("."))
-            .map(name  -> "." + name.substring(filename.lastIndexOf(".") + 1)).orElse(".png");
+    private final Function<String, String> fileExtension = filename -> Optional.ofNullable(filename)
+            .filter(name -> name.contains("."))
+            .map(name -> "." + name.substring(name.lastIndexOf(".") + 1))
+            .orElse(".png");
 
     private final BiFunction<String, MultipartFile, String> photoFunction = (id, image) -> {
         String filename = id + fileExtension.apply(image.getOriginalFilename());
-        try{
+        try {
             Path fileStorageLocation = Paths.get(PHOTO_DIRECTORY).toAbsolutePath().normalize();
             if (!Files.exists(fileStorageLocation)) {
                 Files.createDirectories(fileStorageLocation);
             }
+
+            try (Stream<Path> existing = Files.list(fileStorageLocation)) {
+                existing.filter(p -> p.getFileName().toString().startsWith(id + "."))
+                        .forEach(p -> {
+                            try {
+                                Files.deleteIfExists(p);
+                            } catch (IOException e) {
+                                log.warn("Could not delete old photo file: {}", p, e);
+                            }
+                        });
+            }
+
             Files.copy(image.getInputStream(), fileStorageLocation.resolve(filename), REPLACE_EXISTING);
             return ServletUriComponentsBuilder
                     .fromCurrentContextPath()

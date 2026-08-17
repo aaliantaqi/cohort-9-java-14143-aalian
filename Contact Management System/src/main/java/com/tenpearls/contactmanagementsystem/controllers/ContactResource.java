@@ -35,36 +35,39 @@ public class ContactResource {
     @GetMapping
     public ResponseEntity<?> getContacts(@RequestParam(value = "page", defaultValue = "0") int page,
                                          @RequestParam(value = "size", defaultValue = "10") int size,
+                                         @RequestParam(value = "search", required = false) String search,
                                          Authentication authentication){
-        try {
-            return ResponseEntity.ok().body(contactService.getAllContacts(authentication.getName(), page, size));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        return ResponseEntity.ok().body(contactService.getAllContacts(authentication.getName(), page, size, search));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Contact> getContact(@PathVariable("id") String id, Authentication authentication) {
-        try {
-            return ResponseEntity.ok().body(contactService.getContact(id, authentication.getName()));
-        } catch (ContactService.ContactNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok().body(contactService.getContact(id, authentication.getName()));
     }
 
     @PutMapping("/photo")
     public ResponseEntity<?> uploadPhoto(@RequestParam("id") String id,
                                          @RequestParam("file") MultipartFile file,
                                          Authentication authentication) {
-        try {
-            String photoUrl = contactService.uploadPhoto(id, authentication.getName(), file);
-            return ResponseEntity.ok().body(photoUrl);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (ContactService.ContactNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+        String photoUrl = contactService.uploadPhoto(id, authentication.getName(), file);
+        return ResponseEntity.ok().body(photoUrl);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteContact(@PathVariable("id") String id, Authentication authentication) {
+        contactService.deleteContact(id, authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Contact> updateContact(@PathVariable("id") String id,
+                                                 @RequestBody Contact contact,
+                                                 Authentication authentication) {
+        Contact updated = contactService.updateContact(id, contact, authentication.getName());
+        return ResponseEntity.ok(updated);
+    }
+
+
 
     @GetMapping(path = "/{id}/image", produces = {IMAGE_PNG_VALUE, IMAGE_JPEG_VALUE})
     public ResponseEntity<byte[]> getPhotoByContactId(@PathVariable("id") String id, Authentication authentication) throws IOException {
@@ -100,28 +103,6 @@ public class ContactResource {
         return ResponseEntity.ok()
                 .header("Content-Type", contentType)
                 .body(Files.readAllBytes(filePath));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteContact(@PathVariable("id") String id, Authentication authentication) {
-        try {
-            contactService.deleteContact(id, authentication.getName());
-            return ResponseEntity.noContent().build();
-        } catch (ContactService.ContactNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Contact> updateContact(@PathVariable("id") String id,
-                                                 @RequestBody Contact contact,
-                                                 Authentication authentication) {
-        try {
-            Contact updated = contactService.updateContact(id, contact, authentication.getName());
-            return ResponseEntity.ok(updated);
-        } catch (ContactService.ContactNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
     }
 
 }
