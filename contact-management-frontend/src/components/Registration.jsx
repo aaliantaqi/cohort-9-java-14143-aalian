@@ -2,6 +2,7 @@ import axios from 'axios'
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { getCsrfToken } from '../csrf';
+import { toastSuccess } from '../api/ToastService';
 
 import {
     Card,
@@ -53,7 +54,8 @@ export default function Registration() {
             });
 
             if (response.status === 201) {
-                navigate('/registrationSuccess')
+                toastSuccess('Registration successful! Please log in.');
+                navigate('/login')
             }
         } catch (err) {
             setError('An error occurred during user registration')
@@ -64,10 +66,10 @@ export default function Registration() {
         <Container maxWidth="xs">
             <Card sx={{ mt: 6, mb: 4, borderRadius: 2, boxShadow: 2 }}>
                 <CardHeader
-                    title="Register"
-                    sx={{ textAlign: 'center', pb: 0 }}
-                    titleTypographyProps={{ variant: 'h5', fontWeight: 500 }}
-                />
+                title="Registration"
+                sx={{ textAlign: 'center', pb: 0 }}
+                slotProps={{ title: { variant: 'h5', fontWeight: 500 } }}
+            />
                 <CardContent>
                     <Box
                         component="form"

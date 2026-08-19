@@ -53,7 +53,29 @@
     width: auto;
     transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
       scale(0.8);
+      scale(0.8);
   }
+}
+
+
+.profile__avatar {
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	background: var(--primary-navy);
+	color: var(--surface);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 22px;
+	font-weight: 700;
+	flex-shrink: 0;
+}
+
+.input-box input[readonly] {
+	background: var(--background);
+	color: var(--text-secondary);
+	cursor: default;
 }
 
 #center {

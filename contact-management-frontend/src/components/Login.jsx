@@ -8,16 +8,20 @@ import {
     CardActions,
     CardHeader,
     CardContent,
-    TextField
+    TextField,
+    InputAdornment,
+    IconButton
 } from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { getCsrfToken } from '../csrf';
 import { useAuth } from './AuthContext';
+import { toastInfo } from '../api/ToastService';
 
 export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const { login } = useAuth();
@@ -36,11 +40,15 @@ export default function Login() {
 
             if (response.status === 200) {
                 login();
-                navigate('/loginSuccess');
+                navigate('/contacts');
             }
         } catch (error) {
             setError('Invalid username or password. Please retry!');
         }
+    };
+
+    const handleForgotPassword = () => {
+        toastInfo('Password reset is coming soon. Please contact support for now.');
     };
 
     return (
@@ -49,7 +57,7 @@ export default function Login() {
                 <CardHeader
                     title="Login"
                     sx={{ textAlign: 'center', pb: 0 }}
-                    titleTypographyProps={{ variant: 'h5', fontWeight: 500 }}
+                    slotProps={{ title: { variant: 'h5', fontWeight: 500 } }}
                 />
                 <CardContent>
                     <Box
@@ -77,12 +85,36 @@ export default function Login() {
                             label="Password"
                             variant="outlined"
                             size="small"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             fullWidth
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            edge="end"
+                                            size="small"
+                                        >
+                                            <i className={showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'}></i>
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }
+                        }}
                         />
+
+                        <Typography
+                            variant="body2"
+                            align="right"
+                            onClick={handleForgotPassword}
+                            sx={{ cursor: 'pointer', color: 'primary.main', mt: -1 }}
+                        >
+                            Forgot password?
+                        </Typography>
 
                         <Button type="submit" variant="contained" fullWidth>
                             Login
