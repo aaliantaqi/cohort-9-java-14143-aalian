@@ -71,7 +71,7 @@ public class ContactService {
         User owner = getOwner(username);
         contact.setOwner(owner);
         Contact saved = contactRepo.save(contact);
-        log.info("Contact '{}' created by user '{}'", saved.getName(), username);
+        log.info("New contact created (id={})", saved.getId());
         return saved;
     }
 
@@ -98,7 +98,7 @@ public class ContactService {
     public void deleteContact(String id, String username) {
         Contact contact = getContact(id, username);
         contactRepo.delete(contact);
-        log.info("Contact '{}' (id={}) deleted by user '{}'", contact.getName(), id, username);
+        log.info("Contact deleted (id={})", id);
     }
 
     private User getOwner(String username) {
@@ -122,8 +122,11 @@ public class ContactService {
                 Files.createDirectories(fileStorageLocation);
             }
 
+            Path tempFile = fileStorageLocation.resolve(filename + ".tmp");
+            Files.copy(image.getInputStream(), tempFile, REPLACE_EXISTING);
+
             try (Stream<Path> existing = Files.list(fileStorageLocation)) {
-                existing.filter(p -> p.getFileName().toString().startsWith(id + "."))
+                existing.filter(p -> p.getFileName().toString().startsWith(id + ".") && !p.equals(tempFile))
                         .forEach(p -> {
                             try {
                                 Files.deleteIfExists(p);
@@ -133,7 +136,9 @@ public class ContactService {
                         });
             }
 
-            Files.copy(image.getInputStream(), fileStorageLocation.resolve(filename), REPLACE_EXISTING);
+            Path finalPath = fileStorageLocation.resolve(filename);
+            Files.move(tempFile, finalPath, REPLACE_EXISTING);
+
             return ServletUriComponentsBuilder
                     .fromCurrentContextPath()
                     .path("/contacts/" + id + "/image")
