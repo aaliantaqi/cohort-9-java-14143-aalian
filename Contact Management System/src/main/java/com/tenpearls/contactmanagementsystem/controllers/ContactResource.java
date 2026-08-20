@@ -21,7 +21,7 @@ import static org.springframework.util.MimeTypeUtils.IMAGE_JPEG_VALUE;
 import static org.springframework.util.MimeTypeUtils.IMAGE_PNG_VALUE;
 
 @RestController
-@RequestMapping("/contacts")
+@RequestMapping("/api/contacts")
 @RequiredArgsConstructor
 public class ContactResource {
     private final ContactService contactService;
@@ -29,7 +29,7 @@ public class ContactResource {
     @PostMapping
     public ResponseEntity<Contact> createContact(@RequestBody Contact contact, Authentication authentication) {
         Contact newContact = contactService.createContact(contact, authentication.getName());
-        return ResponseEntity.created(URI.create("/contacts/" + newContact.getId())).body(newContact);
+        return ResponseEntity.created(URI.create("/api/contacts/" + newContact.getId())).body(newContact);
     }
 
     @GetMapping
