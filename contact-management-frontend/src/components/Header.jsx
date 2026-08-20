@@ -15,12 +15,13 @@ const Header = ({toggleModal, nbOfContacts, onSearch}) => {
         withCredentials: true,
         headers: { 'X-XSRF-TOKEN': getCsrfToken() }
       });
-      logout();
       toastSuccess('Logged out successfully');
-      navigate('/login');
     } catch (error) {
       console.log(error);
-      toastError('Failed to logout');
+      toastError('Logout request failed, but you have been signed out locally');
+    } finally {
+      logout();
+      navigate('/login');
     }
   };
 
@@ -35,10 +36,11 @@ const Header = ({toggleModal, nbOfContacts, onSearch}) => {
                     </div>
                 </div>
                 <div className='header__search'>
-                    <i className='bi bi-search'></i>
+                    <i className='bi bi-search' aria-hidden="true"></i>
                     <input
                         type='text'
                         placeholder='Search by name...'
+                        aria-label='Search contacts by name'
                         onKeyDown={(event) => {
                             if (event.key === 'Enter') {
                                 onSearch(event.target.value);

@@ -56,7 +56,10 @@ function Profile() {
       setPasswords({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
     } catch (error) {
       console.log(error);
-      toastError(error.response?.data || 'Failed to change password');
+      const message = typeof error.response?.data === 'string'
+        ? error.response.data
+        : error.response?.data?.message || 'Failed to change password';
+      toastError(message);
     }
   };
 
@@ -180,12 +183,13 @@ function App() {
     try {
       await deleteContact(pendingDeleteId);
       toastSuccess('Contact deleted');
-      deleteModalRef.current.close();
-      setPendingDeleteId(null);
       getAllContacts(currentPage);
     } catch (error) {
       console.log(error);
       toastError(error.message);
+    } finally {
+      deleteModalRef.current.close();
+      setPendingDeleteId(null);
     }
   };
 
@@ -202,13 +206,20 @@ function App() {
     event.preventDefault();
     try {
       const { data } = await saveContact(values);
-      const formData = new FormData();
-      formData.append('file', file, file.name);
-      formData.append('id', data.id);
-      await updatePhoto(formData);
       toggleModal(false);
       resetNewContactForm();
       getAllContacts();
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+        formData.append('id', data.id);
+        await updatePhoto(formData);
+        toastSuccess('Contact created');
+      } catch (photoError) {
+        console.log(photoError);
+        toastError('Contact created, but photo upload failed');
+      }
     } catch (error) {
       console.log(error);
       toastError(error.message);
@@ -243,6 +254,7 @@ function App() {
     } catch (error) {
       console.log(error);
       toastError(error.message);
+      throw error;
     }
   };
 
@@ -252,6 +264,7 @@ function App() {
     } catch (error) {
       console.log(error);
       toastError(error.message);
+      throw error;
     }
   };
 

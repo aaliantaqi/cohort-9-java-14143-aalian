@@ -23,7 +23,6 @@ const ContactDetail = ({ updateContact, updateImage }) => {
             const { data } = await getContact(id);
             setContact(data);
             console.log(data);
-            //toastSuccess('Contact retrieved');
         } catch (error) {
             console.log(error);
             toastError(error.message);
@@ -40,11 +39,13 @@ const ContactDetail = ({ updateContact, updateImage }) => {
             formData.append('file', file, file.name);
             formData.append('id', id);
             await updateImage(formData);
-            setContact((prev) => ({ ...prev, photoUrl: `${prev.photoUrl}?updated_at=${new Date().getTime()}` }));
+            setContact((prev) => {
+                const baseUrl = prev.photoUrl ? prev.photoUrl.split('?')[0] : prev.photoUrl;
+                return { ...prev, photoUrl: `${baseUrl}?updated_at=${new Date().getTime()}` };
+            });
             toastSuccess('Photo updated');
         } catch (error) {
             console.log(error);
-            toastError(error.message);
         }
     };
 
@@ -54,14 +55,18 @@ const ContactDetail = ({ updateContact, updateImage }) => {
 
     const onUpdateContact = async (event) => {
         event.preventDefault();
-        await updateContact(contact);        
-        fetchContact(id);
-        toastSuccess('Contact Updated');
+        try {
+            await updateContact(contact);
+            fetchContact(id);
+            toastSuccess('Contact Updated');
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     useEffect(() => {
         fetchContact(id);
-    }, []);
+    }, [id]);
 
     return (
         <>

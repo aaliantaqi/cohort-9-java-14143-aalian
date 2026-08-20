@@ -53,11 +53,14 @@ export default function Registration() {
                 headers: { 'X-XSRF-TOKEN': getCsrfToken() }
             });
 
-            if (response.status === 201) {
+            if (response.status === 200 || response.status === 201) {
                 toastSuccess('Registration successful! Please log in.');
-                navigate('/login')
+                navigate('/login');
+            } else {
+                setError('Registration did not complete. Please try again.');
             }
         } catch (err) {
+            console.log(err);
             setError('An error occurred during user registration')
         }
     }

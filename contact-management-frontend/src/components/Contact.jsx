@@ -15,19 +15,26 @@ const Contact = ({contact, deleteContact}) => {
             <div className="contact__image">
                 <img src={contact.photoUrl} alt={contact.name}/>
             </div>
-            <p className="contact_name"> {contact.name.substring(0,15)} </p>
+            <p className="contact_name"> {contact.name?.substring(0, 15) ?? ''} </p>
             <p className="contact_title"> {contact.title}</p>
         </div>
         <div className="contact__content">
             <div className="contact__body">
-                <p><i className="bi bi-envelope"></i> {contact.email.substring(0, 20)}</p>
+                <p><i className="bi bi-envelope"></i> {contact.email?.substring(0, 20) ?? ''}</p>
                 <p><i className="bi bi-geo"></i> {contact.address}</p>
                 <p><i className="bi bi-telephone"></i> {contact.phone}</p>
                 <p className="contact__status-row">
                     <span>
                         {contact.status === 'Active' ? <i className="bi bi-check-circle"></i> : <i className="bi bi-x-circle"></i>} {contact.status}
                     </span>
-                    <i onClick={handleDelete} className="bi bi-trash contact__delete" title="Delete contact"></i>
+                    <button
+                        type="button"
+                        onClick={handleDelete}
+                        className="contact__delete"
+                        aria-label="Delete contact"
+                    >
+                        <i className="bi bi-trash"></i>
+                    </button>
                 </p>
             </div>
         </div>

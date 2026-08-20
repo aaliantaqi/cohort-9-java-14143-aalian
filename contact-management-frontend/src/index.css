@@ -376,7 +376,36 @@ h6 {
 	border-radius: 50%;
 }
 
+.profile__avatar {
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	background: var(--primary-navy);
+	color: var(--surface);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 22px;
+	font-weight: 700;
+	flex-shrink: 0;
+}
 
+.input-box input[readonly] {
+	background: var(--background);
+	color: var(--text-secondary);
+	cursor: default;
+}
+
+.pagination button {
+    background: none;
+    border: none;
+    font: inherit;
+    cursor: pointer;
+}
+.pagination button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
 
 .contact__body>p>span,
 .contact__body>p {

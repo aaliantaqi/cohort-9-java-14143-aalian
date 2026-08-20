@@ -43,7 +43,14 @@ export default function Login() {
                 navigate('/contacts');
             }
         } catch (error) {
-            setError('Invalid username or password. Please retry!');
+            console.log(error);
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                setError('Invalid username or password. Please retry!');
+            } else if (error.response) {
+                setError('Something went wrong on our end. Please try again shortly.');
+            } else {
+                setError('Unable to reach the server. Please check your connection.');
+            }
         }
     };
 
@@ -98,8 +105,9 @@ export default function Login() {
                                             onClick={() => setShowPassword(!showPassword)}
                                             edge="end"
                                             size="small"
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
                                         >
-                                            <i className={showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'}></i>
+                                            <i className={showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'} aria-hidden="true"></i>
                                         </IconButton>
                                     </InputAdornment>
                                 )
@@ -110,8 +118,19 @@ export default function Login() {
                         <Typography
                             variant="body2"
                             align="right"
+                            component="button"
+                            type="button"
                             onClick={handleForgotPassword}
-                            sx={{ cursor: 'pointer', color: 'primary.main', mt: -1 }}
+                            sx={{
+                                cursor: 'pointer',
+                                color: 'primary.main',
+                                mt: -1,
+                                background: 'none',
+                                border: 'none',
+                                padding: 0,
+                                alignSelf: 'flex-end',
+                                font: 'inherit'
+                            }}
                         >
                             Forgot password?
                         </Typography>

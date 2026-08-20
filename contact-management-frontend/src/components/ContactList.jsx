@@ -3,7 +3,7 @@ import Contact from "./Contact"
 
 const ContactList = ({data, currentPage, getAllContacts, deleteContact}) => {
   return (
-    <main className='main'>
+    <section  className='main'>
             {data?.content?.length === 0 && <div> No Contacts! Please Add a New Contact </div>}
             <ul className='contact__list'>
                 {data?.content?.length > 0 && data.content.map(contact => <Contact contact={contact} key={contact.id} deleteContact={deleteContact} /> )}
@@ -18,7 +18,7 @@ const ContactList = ({data, currentPage, getAllContacts, deleteContact}) => {
                     <a onClick={() => getAllContacts(currentPage + 1)} className={data.totalPages === currentPage + 1 ? 'disabled' : ''}> &raquo; </a>
                 </div>
             }
-    </main>
+    </section >
   )
 }
 
