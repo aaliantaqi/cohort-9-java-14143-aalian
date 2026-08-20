@@ -47,7 +47,7 @@ export default function Registration() {
 
         try {
             const { confirmPassword, ...payload } = formData;
-            
+
             const response = await axios.post('/api/register', payload, {
                 withCredentials: true,
                 headers: { 'X-XSRF-TOKEN': getCsrfToken() }
@@ -59,9 +59,10 @@ export default function Registration() {
             } else {
                 setError('Registration did not complete. Please try again.');
             }
-        } catch (err) {
-            console.log(err);
-            setError('An error occurred during user registration')
+        }
+        catch (err) {
+            console.log('Registration failed with status:', err.response?.status);
+            setError('An error occurred during user registration');
         }
     }
 
@@ -69,10 +70,10 @@ export default function Registration() {
         <Container maxWidth="xs">
             <Card sx={{ mt: 6, mb: 4, borderRadius: 2, boxShadow: 2 }}>
                 <CardHeader
-                title="Registration"
-                sx={{ textAlign: 'center', pb: 0 }}
-                slotProps={{ title: { variant: 'h5', fontWeight: 500 } }}
-            />
+                    title="Registration"
+                    sx={{ textAlign: 'center', pb: 0 }}
+                    slotProps={{ title: { variant: 'h5', fontWeight: 500 } }}
+                />
                 <CardContent>
                     <Box
                         component="form"
