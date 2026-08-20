@@ -143,6 +143,7 @@ function App() {
   const [data, setData] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
   const [file, setFile] = useState(undefined);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [values, setValues] = useState({
@@ -205,27 +206,27 @@ function App() {
   const handleNewContact = async (event) => {
     event.preventDefault();
     try {
-      const { data } = await saveContact(values);
-      toggleModal(false);
-      resetNewContactForm();
-      getAllContacts();
+        const { data } = await saveContact(values);
+        toggleModal(false);
+        resetNewContactForm();
 
-      try {
-        const formData = new FormData();
-        formData.append('file', file, file.name);
-        formData.append('id', data.id);
-        await updatePhoto(formData);
-        toastSuccess('Contact created');
-      } catch (photoError) {
-        console.log(photoError);
-        toastError('Contact created, but photo upload failed');
-      }
+        try {
+            const formData = new FormData();
+            formData.append('file', file, file.name);
+            formData.append('id', data.id);
+            await updatePhoto(formData);
+            toastSuccess('Contact created');
+        } catch (photoError) {
+            console.log(photoError);
+            toastError('Contact created, but photo upload failed');
+        }
+
+        getAllContacts();
     } catch (error) {
-      console.log(error);
-      toastError(error.message);
+        console.log(error);
+        toastError(error.message);
     }
-  };
-
+};
 
   const resetNewContactForm = () => {
     setValues({
@@ -240,6 +241,10 @@ function App() {
     if (fileRef.current) {
       fileRef.current.value = null;
     }
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(null);
   };
 
   const handleCancelNewContact = () => {
@@ -335,7 +340,26 @@ function App() {
                   </div>
                   <div className="file-input">
                     <span className="details">Profile Photo</span>
-                    <input type="file" onChange={(event) => setFile(event.target.files[0])} ref={fileRef} name='photo' required />
+                    {previewUrl && (
+                      <img
+                        src={previewUrl}
+                        alt="Selected profile preview"
+                        style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }}
+                      />
+                    )}
+                    <input
+                      type="file"
+                      onChange={(event) => {
+                        const selectedFile = event.target.files[0];
+                        setFile(selectedFile);
+                        if (selectedFile) {
+                          setPreviewUrl(URL.createObjectURL(selectedFile));
+                        }
+                      }}
+                      ref={fileRef}
+                      name='photo'
+                      required
+                    />
                   </div>
                 </div>
                 <div className="form_footer">
@@ -353,7 +377,7 @@ function App() {
             </div>
             <div className="divider"></div>
             <div className="modal__body">
-              <p style={{ margin: '1rem 0' }}>Are you sure you want to delete this contact? This action cannot be undone.</p>
+              <p style={{ margin: '1rem 0' }}>Are you sure you want to delete this contact?</p>
             </div>
             <div className="form_footer">
               <button onClick={cancelDeleteContact} type='button' className="btn btn-danger">Cancel</button>
