@@ -2,6 +2,7 @@ import axios from 'axios'
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { getCsrfToken } from '../csrf';
+import { toastSuccess } from '../api/ToastService';
 
 import {
     Card,
@@ -52,10 +53,14 @@ export default function Registration() {
                 headers: { 'X-XSRF-TOKEN': getCsrfToken() }
             });
 
-            if (response.status === 201) {
-                navigate('/registrationSuccess')
+            if (response.status === 200 || response.status === 201) {
+                toastSuccess('Registration successful! Please log in.');
+                navigate('/login');
+            } else {
+                setError('Registration did not complete. Please try again.');
             }
         } catch (err) {
+            console.log(err);
             setError('An error occurred during user registration')
         }
     }
@@ -64,10 +69,10 @@ export default function Registration() {
         <Container maxWidth="xs">
             <Card sx={{ mt: 6, mb: 4, borderRadius: 2, boxShadow: 2 }}>
                 <CardHeader
-                    title="Register"
-                    sx={{ textAlign: 'center', pb: 0 }}
-                    titleTypographyProps={{ variant: 'h5', fontWeight: 500 }}
-                />
+                title="Registration"
+                sx={{ textAlign: 'center', pb: 0 }}
+                slotProps={{ title: { variant: 'h5', fontWeight: 500 } }}
+            />
                 <CardContent>
                     <Box
                         component="form"

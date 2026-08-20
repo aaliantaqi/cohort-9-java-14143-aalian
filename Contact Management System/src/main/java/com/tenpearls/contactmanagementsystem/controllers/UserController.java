@@ -78,8 +78,10 @@ public class UserController {
     public ResponseEntity<?> newUser(@RequestBody UserRegistrationRequest request){
         try {
             User newUser = userService.addUser(request);
+            logger.info("New user registered: '{}'", newUser.getUsername());
             return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
         } catch (IllegalArgumentException e) {
+            logger.warn("Registration failed for username '{}': {}", request.getUsername(), e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
@@ -99,16 +101,41 @@ public class UserController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok(authentication.getName());
+        User user = userService.getUserByUsername(authentication.getName());
+        // Build a response without the password hash
+        var profile = new java.util.HashMap<String, Object>();
+        profile.put("id", user.getId());
+        profile.put("firstname", user.getFirstname());
+        profile.put("lastname", user.getLastname());
+        profile.put("username", user.getUsername());
+        return ResponseEntity.ok(profile);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody java.util.Map<String, String> body, Authentication authentication) {
+        try {
+            userService.changePassword(authentication.getName(), body.get("currentPassword"), body.get("newPassword"));
+            logger.info("User '{}' changed their password", authentication.getName());
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (IllegalArgumentException e) {
+            logger.warn("Password change failed for '{}': {}", authentication.getName(), e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
+        String username = SecurityContextHolder.getContext().getAuthentication() != null
+                ? SecurityContextHolder.getContext().getAuthentication().getName()
+                : "unknown";
         if (session != null) {
             session.invalidate();
         }
         SecurityContextHolder.clearContext();
+        logger.info("User '{}' logged out", username);
         return ResponseEntity.ok("Logout successful");
     }
 
@@ -129,8 +156,10 @@ public class UserController {
             SecurityContextHolder.setContext(context);
             securityContextRepository.saveContext(context, request, response);
 
+            logger.info("User '{}' logged in successfully", loginRequest.getUsername());
             return ResponseEntity.ok("Login was successful!");
         } catch (BadCredentialsException e) {
+            logger.warn("Failed login attempt for username '{}'", loginRequest.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         } catch (Exception e) {
             logger.error("Unexpected error during login", e);

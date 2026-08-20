@@ -56,6 +56,7 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+
     public User addUser(UserRegistrationRequest request){
         if (userRepository.findByUsername(request.getUsername()) != null) {
             throw new IllegalArgumentException("Username already exists: " + request.getUsername());
@@ -72,5 +73,27 @@ public class UserService {
         } catch (DataIntegrityViolationException e) {
             throw new IllegalArgumentException("Username already exists: " + request.getUsername());
         }
+    }
+    public User getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found: " + username);
+        }
+        return user;
+    }
+
+    public void changePassword(String username, String currentPassword, String newPassword) {
+        User user = getUserByUsername(username);
+
+        if (!bCryptPasswordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new IllegalArgumentException("New password cannot be empty");
+        }
+
+        user.setPassword(bCryptPasswordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }
