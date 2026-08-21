@@ -2,8 +2,11 @@ import React from 'react'
 import Contact from "./Contact"
 
 const ContactList = ({data, currentPage, getAllContacts, deleteContact}) => {
+  const isFirstPage = currentPage === 0;
+  const isLastPage = data?.totalPages ? currentPage === data.totalPages - 1 : true;
+
   return (
-    <section  className='main'>
+    <section className='main'>
             {data?.content?.length === 0 && <div> No Contacts! Please Add a New Contact </div>}
             <ul className='contact__list'>
                 {data?.content?.length > 0 && data.content.map(contact => <Contact contact={contact} key={contact.id} deleteContact={deleteContact} /> )}
@@ -11,14 +14,31 @@ const ContactList = ({data, currentPage, getAllContacts, deleteContact}) => {
 
             {data?.content?.length > 0 && data?.totalPages > 1 &&
                 <div className='pagination'>
-                    <a onClick={() => getAllContacts(currentPage - 1)} className={0 === currentPage ? 'disabled' : ''}> &laquo; </a>
-                    { data && [...Array(data.totalPages).keys()].map((page, index) =>
-                        <a onClick={() => getAllContacts(page)} className={currentPage === page ? 'active' : ''} key={page} > {page+1} </a> )}
+                    <button
+                        type="button"
+                        onClick={() => getAllContacts(currentPage - 1)}
+                        disabled={isFirstPage}
+                        className={isFirstPage ? 'disabled' : ''}
+                    > &laquo; </button>
 
-                    <a onClick={() => getAllContacts(currentPage + 1)} className={data.totalPages === currentPage + 1 ? 'disabled' : ''}> &raquo; </a>
+                    {[...Array(data.totalPages).keys()].map((page) =>
+                        <button
+                            type="button"
+                            onClick={() => getAllContacts(page)}
+                            className={currentPage === page ? 'active' : ''}
+                            key={page}
+                        > {page + 1} </button>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={() => getAllContacts(currentPage + 1)}
+                        disabled={isLastPage}
+                        className={isLastPage ? 'disabled' : ''}
+                    > &raquo; </button>
                 </div>
             }
-    </section >
+    </section>
   )
 }
 

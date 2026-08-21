@@ -396,16 +396,7 @@ h6 {
 	cursor: default;
 }
 
-.pagination button {
-    background: none;
-    border: none;
-    font: inherit;
-    cursor: pointer;
-}
-.pagination button:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-}
+
 
 .contact__body>p>span,
 .contact__body>p {
@@ -555,33 +546,40 @@ h6 {
 	gap: 2px;
 }
 
-.pagination a {
+.pagination button {
 	color: var(--text-primary);
 	padding: 8px 14px;
+	background: none;
 	border: 1px solid var(--border);
 	cursor: pointer;
 	font-size: 13.5px;
+	font: inherit;
 	transition: background var(--transition), border-color var(--transition);
 }
 
-.pagination a:first-child {
+.pagination button:first-child {
 	border-top-left-radius: var(--radius-sm);
 	border-bottom-left-radius: var(--radius-sm);
 }
 
-.pagination a:last-child {
+.pagination button:last-child {
 	border-top-right-radius: var(--radius-sm);
 	border-bottom-right-radius: var(--radius-sm);
 }
 
-.pagination a.active {
+.pagination button.active {
 	background: var(--primary-navy);
 	color: var(--surface);
 	border-color: var(--primary-navy);
 }
 
-.pagination a:hover:not(.active) {
+.pagination button:hover:not(.active):not(:disabled) {
 	background: var(--light-navy-bg);
+}
+
+.pagination button:disabled {
+	cursor: not-allowed;
+	opacity: 0.5;
 }
 
 
