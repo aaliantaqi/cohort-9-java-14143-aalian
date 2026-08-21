@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getCsrfToken } from '../csrf';
 
-const API_URL = "/contacts";
+const API_URL = "/api/contacts";
 
 export async function saveContact(contact) {
     return await axios.post(API_URL, contact, {

@@ -34,20 +34,24 @@ const ContactDetail = ({ updateContact, updateImage }) => {
     };
 
     const udpatePhoto = async (file) => {
-        try {
-            const formData = new FormData();
-            formData.append('file', file, file.name);
-            formData.append('id', id);
-            await updateImage(formData);
-            setContact((prev) => {
-                const baseUrl = prev.photoUrl ? prev.photoUrl.split('?')[0] : prev.photoUrl;
-                return { ...prev, photoUrl: `${baseUrl}?updated_at=${new Date().getTime()}` };
-            });
-            toastSuccess('Photo updated');
-        } catch (error) {
-            console.log(error);
-        }
-    };
+    try {
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+        formData.append('id', id);
+        await updateImage(formData);
+
+        const { data } = await getContact(id);
+        setContact({
+            ...data,
+            photoUrl: `${data.photoUrl}?updated_at=${new Date().getTime()}`
+        });
+
+        toastSuccess('Photo updated');
+    } catch (error) {
+        console.log(error);
+        toastError('Failed to update photo');
+    }
+};
 
     const onChange = (event) => {
         setContact({ ...contact, [event.target.name]: event.target.value });

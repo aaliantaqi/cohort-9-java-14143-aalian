@@ -42,8 +42,9 @@ export default function Login() {
                 login();
                 navigate('/contacts');
             }
-        } catch (error) {
-            console.log(error);
+        }
+        catch (error) {
+            console.log('Login failed with status:', error.response?.status);
             if (error.response?.status === 401 || error.response?.status === 403) {
                 setError('Invalid username or password. Please retry!');
             } else if (error.response) {
@@ -98,21 +99,21 @@ export default function Login() {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             slotProps={{
-                            input: {
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            edge="end"
-                                            size="small"
-                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                        >
-                                            <i className={showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'} aria-hidden="true"></i>
-                                        </IconButton>
-                                    </InputAdornment>
-                                )
-                            }
-                        }}
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                edge="end"
+                                                size="small"
+                                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                            >
+                                                <i className={showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'} aria-hidden="true"></i>
+                                            </IconButton>
+                                        </InputAdornment>
+                                    )
+                                }
+                            }}
                         />
 
                         <Typography
