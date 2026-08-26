@@ -18,10 +18,12 @@ public class MyUserDetailsSerivce implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-
-        User user = userRepository.findByUsername(username);
-        if(user == null) {
+    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        // Spring Security still calls this method "loadUserByUsername" (that name is
+        // baked into the interface), but "identifier" here is whatever the person
+        // typed at login - could be an email or a phone number.
+        User user = userRepository.findByEmailOrPhone(identifier);
+        if (user == null) {
             throw new UsernameNotFoundException("This User doesn't exists in the Database");
         }
         return new UserPrincipal(user);
