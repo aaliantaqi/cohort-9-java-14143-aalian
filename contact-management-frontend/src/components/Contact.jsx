@@ -11,8 +11,6 @@ const Contact = ({contact, deleteContact}) => {
 
   const fullName = `${contact.firstname ?? ''} ${contact.lastname ?? ''}`.trim();
 
-  // Contact can now have multiple emails/phones - just show the first one in the list card,
-  // prefixed with its label if one was given. Full list is visible on the contact's detail page.
   const primaryEmail = contact.emails?.[0];
   const primaryPhone = contact.phones?.[0];
 

@@ -19,16 +19,16 @@ const ContactDetail = ({ updateContact, updateImage }) => {
 
     const { id } = useParams();
 
+    const normalizeContact = (data) => ({
+        ...data,
+        emails: data.emails && data.emails.length > 0 ? data.emails : [{ label: '', email: '' }],
+        phones: data.phones && data.phones.length > 0 ? data.phones : [{ label: '', phone: '' }]
+    });
+
     const fetchContact = async (id) => {
         try {
             const { data } = await getContact(id);
-            // Make sure emails/phones are always arrays, even if the backend omits
-            // them when empty (JsonInclude.NON_DEFAULT on the Contact entity does this)
-            setContact({
-                ...data,
-                emails: data.emails && data.emails.length > 0 ? data.emails : [{ label: '', email: '' }],
-                phones: data.phones && data.phones.length > 0 ? data.phones : [{ label: '', phone: '' }]
-            });
+            setContact(normalizeContact(data));
             console.log(data);
         } catch (error) {
             console.log(error);
@@ -41,30 +41,29 @@ const ContactDetail = ({ updateContact, updateImage }) => {
     };
 
     const udpatePhoto = async (file) => {
-    try {
-        const formData = new FormData();
-        formData.append('file', file, file.name);
-        formData.append('id', id);
-        await updateImage(formData);
+        try {
+            const formData = new FormData();
+            formData.append('file', file, file.name);
+            formData.append('id', id);
+            await updateImage(formData);
 
-        const { data } = await getContact(id);
-        setContact({
-            ...data,
-            photoUrl: `${data.photoUrl}?updated_at=${new Date().getTime()}`
-        });
+            const { data } = await getContact(id);
+            setContact({
+                ...normalizeContact(data),
+                photoUrl: `${data.photoUrl}?updated_at=${new Date().getTime()}`
+            });
 
-        toastSuccess('Photo updated');
-    } catch (error) {
-        console.log(error);
-        toastError('Failed to update photo');
-    }
-};
+            toastSuccess('Photo updated');
+        } catch (error) {
+            console.log(error);
+            toastError('Failed to update photo');
+        }
+    };
 
     const onChange = (event) => {
         setContact({ ...contact, [event.target.name]: event.target.value });
     };
 
-    // --- Email row helpers ---
     const onEmailChange = (index, field, value) => {
         const updatedEmails = [...contact.emails];
         updatedEmails[index] = { ...updatedEmails[index], [field]: value };
@@ -80,7 +79,6 @@ const ContactDetail = ({ updateContact, updateImage }) => {
         setContact({ ...contact, emails: updatedEmails.length > 0 ? updatedEmails : [{ label: '', email: '' }] });
     };
 
-    // --- Phone row helpers ---
     const onPhoneChange = (index, field, value) => {
         const updatedPhones = [...contact.phones];
         updatedPhones[index] = { ...updatedPhones[index], [field]: value };
@@ -100,9 +98,9 @@ const ContactDetail = ({ updateContact, updateImage }) => {
         event.preventDefault();
         try {
             const payload = {
-              ...contact,
-              emails: contact.emails.filter(e => e.email.trim() !== ''),
-              phones: contact.phones.filter(p => p.phone.trim() !== ''),
+                ...contact,
+                emails: contact.emails.filter(e => e.email.trim() !== ''),
+                phones: contact.phones.filter(p => p.phone.trim() !== ''),
             };
             await updateContact(payload);
             fetchContact(id);
@@ -116,7 +114,6 @@ const ContactDetail = ({ updateContact, updateImage }) => {
         fetchContact(id);
     }, [id]);
 
-    // Pick the first email/phone just for the header display area
     const primaryEmail = contact.emails.find(e => e.email)?.email || '';
 
     return (
@@ -171,6 +168,7 @@ const ContactDetail = ({ updateContact, updateImage }) => {
                                             style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
                                             value={emailRow.label}
                                             onChange={(e) => onEmailChange(index, 'label', e.target.value)}
+                                            aria-label={`Email label for entry ${index + 1}`}
                                         >
                                             <option value="">Select label</option>
                                             <option value="Work">Work</option>
@@ -183,6 +181,7 @@ const ContactDetail = ({ updateContact, updateImage }) => {
                                             style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
                                             value={emailRow.email}
                                             onChange={(e) => onEmailChange(index, 'email', e.target.value)}
+                                            aria-label={`Email address for entry ${index + 1}`}
                                         />
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
@@ -221,6 +220,7 @@ const ContactDetail = ({ updateContact, updateImage }) => {
                                             style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
                                             value={phoneRow.label}
                                             onChange={(e) => onPhoneChange(index, 'label', e.target.value)}
+                                            aria-label={`Phone label for entry ${index + 1}`}
                                         >
                                             <option value="">Select label</option>
                                             <option value="Work">Work</option>
@@ -233,6 +233,7 @@ const ContactDetail = ({ updateContact, updateImage }) => {
                                             style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
                                             value={phoneRow.phone}
                                             onChange={(e) => onPhoneChange(index, 'phone', e.target.value)}
+                                            aria-label={`Phone number for entry ${index + 1}`}
                                         />
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>

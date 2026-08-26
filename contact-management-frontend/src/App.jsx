@@ -209,7 +209,6 @@ function App() {
     setValues({ ...values, [event.target.name]: event.target.value });
   };
 
-  // --- Email row helpers (New Contact form) ---
   const onEmailChange = (index, field, value) => {
     const updatedEmails = [...values.emails];
     updatedEmails[index] = { ...updatedEmails[index], [field]: value };
@@ -225,7 +224,6 @@ function App() {
     setValues({ ...values, emails: updatedEmails.length > 0 ? updatedEmails : [{ label: '', email: '' }] });
   };
 
-  // --- Phone row helpers (New Contact form) ---
   const onPhoneChange = (index, field, value) => {
     const updatedPhones = [...values.phones];
     updatedPhones[index] = { ...updatedPhones[index], [field]: value };
@@ -244,33 +242,32 @@ function App() {
   const handleNewContact = async (event) => {
     event.preventDefault();
     try {
-        // Drop any rows the user left completely empty before sending to the backend
-        const payload = {
-          ...values,
-          emails: values.emails.filter(e => e.email.trim() !== ''),
-          phones: values.phones.filter(p => p.phone.trim() !== ''),
-        };
-        const { data } = await saveContact(payload);
-        toggleModal(false);
-        resetNewContactForm();
+      const payload = {
+        ...values,
+        emails: values.emails.filter(e => e.email.trim() !== ''),
+        phones: values.phones.filter(p => p.phone.trim() !== ''),
+      };
+      const { data } = await saveContact(payload);
+      toggleModal(false);
+      resetNewContactForm();
 
-        try {
-            const formData = new FormData();
-            formData.append('file', file, file.name);
-            formData.append('id', data.id);
-            await updatePhoto(formData);
-            toastSuccess('Contact created');
-        } catch (photoError) {
-            console.log(photoError);
-            toastError('Contact created, but photo upload failed');
-        }
+      try {
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+        formData.append('id', data.id);
+        await updatePhoto(formData);
+        toastSuccess('Contact created');
+      } catch (photoError) {
+        console.log(photoError);
+        toastError('Contact created, but photo upload failed');
+      }
 
-        getAllContacts();
+      getAllContacts();
     } catch (error) {
-        console.log(error);
-        toastError(error.message);
+      console.log(error);
+      toastError(error.message);
     }
-};
+  };
 
   const resetNewContactForm = () => {
     setValues({
@@ -404,7 +401,7 @@ function App() {
                   </div>
                 </div>
 
-                               <div className="divider" style={{ margin: '1rem 0' }}></div>
+                <div className="divider" style={{ margin: '1rem 0' }}></div>
                 <span className="details" style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Email Addresses</span>
                 <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.35rem', fontSize: '0.8rem', color: '#888' }}>
                   <span style={{ flex: '0 0 35%' }}>Label</span>
@@ -417,6 +414,7 @@ function App() {
                         style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
                         value={emailRow.label}
                         onChange={(e) => onEmailChange(index, 'label', e.target.value)}
+                        aria-label={`Email label for entry ${index + 1}`}
                       >
                         <option value="">Select label</option>
                         <option value="Work">Work</option>
@@ -429,6 +427,7 @@ function App() {
                         style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
                         value={emailRow.email}
                         onChange={(e) => onEmailChange(index, 'email', e.target.value)}
+                        aria-label={`Email address for entry ${index + 1}`}
                       />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
@@ -467,6 +466,7 @@ function App() {
                         style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
                         value={phoneRow.label}
                         onChange={(e) => onPhoneChange(index, 'label', e.target.value)}
+                        aria-label={`Phone label for entry ${index + 1}`}
                       >
                         <option value="">Select label</option>
                         <option value="Work">Work</option>
@@ -479,6 +479,7 @@ function App() {
                         style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
                         value={phoneRow.phone}
                         onChange={(e) => onPhoneChange(index, 'phone', e.target.value)}
+                        aria-label={`Phone number for entry ${index + 1}`}
                       />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
