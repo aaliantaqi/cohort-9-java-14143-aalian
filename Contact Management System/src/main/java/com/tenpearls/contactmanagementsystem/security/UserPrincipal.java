@@ -31,7 +31,10 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getUsername();
+        // Spring Security's "username" here just means "the identity string" -
+        // it doesn't have to come from a literal username field. We use
+        // whichever identifier this user registered with.
+        return user.getEmail() != null ? user.getEmail() : user.getPhone();
     }
 
     @Override
