@@ -14,7 +14,7 @@ import Registration from './components/Registration';
 
 function Profile() {
   const modalRef = useRef();
-  const [profile, setProfile] = useState({ firstname: '', lastname: '', username: '' });
+  const [profile, setProfile] = useState({ firstname: '', lastname: '', email: '', phone: '' });
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
@@ -75,7 +75,7 @@ function Profile() {
           </div>
           <div>
             <p className="profile__name">{profile.firstname} {profile.lastname}</p>
-            <p className="profile__muted">@{profile.username}</p>
+            <p className="profile__muted">{profile.email || profile.phone}</p>
           </div>
         </div>
 
@@ -91,8 +91,12 @@ function Profile() {
               <input type="text" value={profile.lastname} readOnly />
             </div>
             <div className="input-box">
-              <span className="details">Username</span>
-              <input type="text" value={profile.username} readOnly />
+              <span className="details">Email</span>
+              <input type="text" value={profile.email || '—'} readOnly />
+            </div>
+            <div className="input-box">
+              <span className="details">Phone Number</span>
+              <input type="text" value={profile.phone || '—'} readOnly />
             </div>
           </div>
 
@@ -136,6 +140,7 @@ function Profile() {
     </>
   )
 }
+
 function App() {
   const modalRef = useRef();
   const fileRef = useRef();
@@ -147,12 +152,13 @@ function App() {
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [values, setValues] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
+    firstname: '',
+    lastname: '',
     title: '',
+    address: '',
     status: '',
+    emails: [{ label: '', email: '' }],
+    phones: [{ label: '', phone: '' }],
   });
 
   const location = useLocation();
@@ -203,10 +209,48 @@ function App() {
     setValues({ ...values, [event.target.name]: event.target.value });
   };
 
+  // --- Email row helpers (New Contact form) ---
+  const onEmailChange = (index, field, value) => {
+    const updatedEmails = [...values.emails];
+    updatedEmails[index] = { ...updatedEmails[index], [field]: value };
+    setValues({ ...values, emails: updatedEmails });
+  };
+
+  const addEmailRow = () => {
+    setValues({ ...values, emails: [...values.emails, { label: '', email: '' }] });
+  };
+
+  const removeEmailRow = (index) => {
+    const updatedEmails = values.emails.filter((_, i) => i !== index);
+    setValues({ ...values, emails: updatedEmails.length > 0 ? updatedEmails : [{ label: '', email: '' }] });
+  };
+
+  // --- Phone row helpers (New Contact form) ---
+  const onPhoneChange = (index, field, value) => {
+    const updatedPhones = [...values.phones];
+    updatedPhones[index] = { ...updatedPhones[index], [field]: value };
+    setValues({ ...values, phones: updatedPhones });
+  };
+
+  const addPhoneRow = () => {
+    setValues({ ...values, phones: [...values.phones, { label: '', phone: '' }] });
+  };
+
+  const removePhoneRow = (index) => {
+    const updatedPhones = values.phones.filter((_, i) => i !== index);
+    setValues({ ...values, phones: updatedPhones.length > 0 ? updatedPhones : [{ label: '', phone: '' }] });
+  };
+
   const handleNewContact = async (event) => {
     event.preventDefault();
     try {
-        const { data } = await saveContact(values);
+        // Drop any rows the user left completely empty before sending to the backend
+        const payload = {
+          ...values,
+          emails: values.emails.filter(e => e.email.trim() !== ''),
+          phones: values.phones.filter(p => p.phone.trim() !== ''),
+        };
+        const { data } = await saveContact(payload);
         toggleModal(false);
         resetNewContactForm();
 
@@ -230,12 +274,13 @@ function App() {
 
   const resetNewContactForm = () => {
     setValues({
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
+      firstname: '',
+      lastname: '',
       title: '',
+      address: '',
       status: '',
+      emails: [{ label: '', email: '' }],
+      phones: [{ label: '', phone: '' }],
     });
     setFile(undefined);
     if (fileRef.current) {
@@ -315,20 +360,16 @@ function App() {
               <form onSubmit={handleNewContact}>
                 <div className="user-details">
                   <div className="input-box">
-                    <span className="details">Name</span>
-                    <input type="text" value={values.name} onChange={onChange} name='name' required />
+                    <span className="details">First Name</span>
+                    <input type="text" value={values.firstname} onChange={onChange} name='firstname' required />
                   </div>
                   <div className="input-box">
-                    <span className="details">Email</span>
-                    <input type="text" value={values.email} onChange={onChange} name='email' required />
+                    <span className="details">Last Name</span>
+                    <input type="text" value={values.lastname} onChange={onChange} name='lastname' required />
                   </div>
                   <div className="input-box">
                     <span className="details">Title</span>
                     <input type="text" value={values.title} onChange={onChange} name='title' required />
-                  </div>
-                  <div className="input-box">
-                    <span className="details">Phone Number</span>
-                    <input type="text" value={values.phone} onChange={onChange} name='phone' required />
                   </div>
                   <div className="input-box">
                     <span className="details">Address</span>
@@ -362,6 +403,109 @@ function App() {
                     />
                   </div>
                 </div>
+
+                               <div className="divider" style={{ margin: '1rem 0' }}></div>
+                <span className="details" style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Email Addresses</span>
+                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.35rem', fontSize: '0.8rem', color: '#888' }}>
+                  <span style={{ flex: '0 0 35%' }}>Label</span>
+                  <span style={{ flex: 1 }}>Email</span>
+                </div>
+                {values.emails.map((emailRow, index) => (
+                  <div key={index} style={{ marginBottom: '0.6rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <select
+                        style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
+                        value={emailRow.label}
+                        onChange={(e) => onEmailChange(index, 'label', e.target.value)}
+                      >
+                        <option value="">Select label</option>
+                        <option value="Work">Work</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Home">Home</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <input
+                        type="email"
+                        style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
+                        value={emailRow.email}
+                        onChange={(e) => onEmailChange(index, 'email', e.target.value)}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
+                      {index === values.emails.length - 1 ? (
+                        <button
+                          type="button"
+                          className="btn"
+                          style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
+                          onClick={addEmailRow}
+                        >
+                          + Add another email
+                        </button>
+                      ) : <span></span>}
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
+                        onClick={() => removeEmailRow(index)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="divider" style={{ margin: '1rem 0' }}></div>
+                <span className="details" style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Phone Numbers</span>
+                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.35rem', fontSize: '0.8rem', color: '#888' }}>
+                  <span style={{ flex: '0 0 35%' }}>Label</span>
+                  <span style={{ flex: 1 }}>Phone</span>
+                </div>
+                {values.phones.map((phoneRow, index) => (
+                  <div key={index} style={{ marginBottom: '0.6rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <select
+                        style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
+                        value={phoneRow.label}
+                        onChange={(e) => onPhoneChange(index, 'label', e.target.value)}
+                      >
+                        <option value="">Select label</option>
+                        <option value="Work">Work</option>
+                        <option value="Home">Home</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <input
+                        type="text"
+                        style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
+                        value={phoneRow.phone}
+                        onChange={(e) => onPhoneChange(index, 'phone', e.target.value)}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
+                      {index === values.phones.length - 1 ? (
+                        <button
+                          type="button"
+                          className="btn"
+                          style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
+                          onClick={addPhoneRow}
+                        >
+                          + Add another phone
+                        </button>
+                      ) : <span></span>}
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
+                        onClick={() => removePhoneRow(index)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+
+
                 <div className="form_footer">
                   <button onClick={handleCancelNewContact} type='button' className="btn btn-danger">Cancel</button>
                   <button type='submit' className="btn">Save</button>
