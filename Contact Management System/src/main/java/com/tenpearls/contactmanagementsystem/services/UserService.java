@@ -33,14 +33,23 @@ public class UserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        User userWithSameUsername = userRepository.findByUsername(updatedData.getUsername());
-        if (userWithSameUsername != null && userWithSameUsername.getId() != id) {
-            throw new IllegalArgumentException("Username already exists: " + updatedData.getUsername());
+        if (updatedData.getEmail() != null && !updatedData.getEmail().isBlank()) {
+            User userWithSameEmail = userRepository.findByEmail(updatedData.getEmail());
+            if (userWithSameEmail != null && userWithSameEmail.getId() != id) {
+                throw new IllegalArgumentException("Email already in use: " + updatedData.getEmail());
+            }
+        }
+        if (updatedData.getPhone() != null && !updatedData.getPhone().isBlank()) {
+            User userWithSamePhone = userRepository.findByPhone(updatedData.getPhone());
+            if (userWithSamePhone != null && userWithSamePhone.getId() != id) {
+                throw new IllegalArgumentException("Phone already in use: " + updatedData.getPhone());
+            }
         }
 
         existingUser.setFirstname(updatedData.getFirstname());
         existingUser.setLastname(updatedData.getLastname());
-        existingUser.setUsername(updatedData.getUsername());
+        existingUser.setEmail(updatedData.getEmail());
+        existingUser.setPhone(updatedData.getPhone());
 
         if (updatedData.getPassword() != null && !updatedData.getPassword().isEmpty()) {
             existingUser.setPassword(bCryptPasswordEncoder.encode(updatedData.getPassword()));
@@ -56,34 +65,46 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-
     public User addUser(UserRegistrationRequest request){
-        if (userRepository.findByUsername(request.getUsername()) != null) {
-            throw new IllegalArgumentException("Username already exists: " + request.getUsername());
+        boolean hasEmail = request.getEmail() != null && !request.getEmail().isBlank();
+        boolean hasPhone = request.getPhone() != null && !request.getPhone().isBlank();
+
+        if (!hasEmail && !hasPhone) {
+            throw new IllegalArgumentException("Please provide an email or a phone number");
+        }
+        if (hasEmail && userRepository.findByEmail(request.getEmail()) != null) {
+            throw new IllegalArgumentException("Email already exists: " + request.getEmail());
+        }
+        if (hasPhone && userRepository.findByPhone(request.getPhone()) != null) {
+            throw new IllegalArgumentException("Phone number already exists: " + request.getPhone());
         }
 
         User user = new User();
         user.setFirstname(request.getFirstname());
         user.setLastname(request.getLastname());
-        user.setUsername(request.getUsername());
+        user.setEmail(hasEmail ? request.getEmail() : null);
+        user.setPhone(hasPhone ? request.getPhone() : null);
         user.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
 
         try {
             return userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
-            throw new IllegalArgumentException("Username already exists: " + request.getUsername());
+            throw new IllegalArgumentException("Email or phone already exists");
         }
     }
-    public User getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username);
+
+    // Name kept as "getUserByUsername" to avoid renaming every call site,
+    // but it now looks up by whatever identifier (email or phone) was passed in.
+    public User getUserByUsername(String identifier) {
+        User user = userRepository.findByEmailOrPhone(identifier);
         if (user == null) {
-            throw new RuntimeException("User not found: " + username);
+            throw new RuntimeException("User not found: " + identifier);
         }
         return user;
     }
 
-    public void changePassword(String username, String currentPassword, String newPassword) {
-        User user = getUserByUsername(username);
+    public void changePassword(String identifier, String currentPassword, String newPassword) {
+        User user = getUserByUsername(identifier);
 
         if (!bCryptPasswordEncoder.matches(currentPassword, user.getPassword())) {
             throw new IllegalArgumentException("Current password is incorrect");
