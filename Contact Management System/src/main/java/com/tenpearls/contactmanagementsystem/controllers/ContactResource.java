@@ -31,7 +31,8 @@ public class ContactResource {
     @PostMapping
     public ResponseEntity<Contact> createContact(@RequestBody Contact contact, Authentication authentication) {
         Contact newContact = contactService.createContact(contact, authentication.getName());
-        log.info("User '{}' created contact (id={}, name={} {})", authentication.getName(), newContact.getId(), newContact.getFirstname(), newContact.getLastname());        return ResponseEntity.created(URI.create("/api/contacts/" + newContact.getId())).body(newContact);
+        log.info("New contact created (id={})", newContact.getId());
+        return ResponseEntity.created(URI.create("/api/contacts/" + newContact.getId())).body(newContact);
     }
 
     @GetMapping
@@ -52,14 +53,14 @@ public class ContactResource {
                                          @RequestParam("file") MultipartFile file,
                                          Authentication authentication) {
         String photoUrl = contactService.uploadPhoto(id, authentication.getName(), file);
-        log.info("User '{}' uploaded photo for contact (id={})", authentication.getName(), id);
+        log.info("Photo uploaded for contact (id={})", id);
         return ResponseEntity.ok().body(photoUrl);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteContact(@PathVariable("id") String id, Authentication authentication) {
         contactService.deleteContact(id, authentication.getName());
-        log.info("User '{}' deleted contact (id={})", authentication.getName(), id);
+        log.info("Contact deleted (id={})", id);
         return ResponseEntity.noContent().build();
     }
 
@@ -68,7 +69,7 @@ public class ContactResource {
                                                  @RequestBody Contact contact,
                                                  Authentication authentication) {
         Contact updated = contactService.updateContact(id, contact, authentication.getName());
-        log.info("User '{}' updated contact (id={})", authentication.getName(), id);
+        log.info("Contact updated (id={})", id);
         return ResponseEntity.ok(updated);
     }
 
