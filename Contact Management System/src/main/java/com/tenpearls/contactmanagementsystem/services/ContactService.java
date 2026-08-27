@@ -159,7 +159,10 @@ public class ContactService {
         existingContact.setStatus(updatedData.getStatus());
         existingContact.setAddress(updatedData.getAddress());
 
-        // Full replace: clear old emails/phones, add whatever the frontend sent.
+        if (updatedData.getEmails() == null || updatedData.getPhones() == null) {
+            throw new IllegalArgumentException("Emails and phones lists cannot be null");
+        }
+
         existingContact.getEmails().clear();
         existingContact.getEmails().addAll(updatedData.getEmails());
         existingContact.getPhones().clear();

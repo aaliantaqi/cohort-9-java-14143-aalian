@@ -6,6 +6,7 @@ import com.tenpearls.contactmanagementsystem.repositories.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import java.util.Objects;
 
 import java.util.List;
 
@@ -29,42 +30,6 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
-    public User updateUser(Integer id, User updatedData) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
-        if (updatedData.getEmail() != null && !updatedData.getEmail().isBlank()) {
-            User userWithSameEmail = userRepository.findByEmail(updatedData.getEmail());
-            if (userWithSameEmail != null && userWithSameEmail.getId() != id) {
-                throw new IllegalArgumentException("Email already in use: " + updatedData.getEmail());
-            }
-        }
-        if (updatedData.getPhone() != null && !updatedData.getPhone().isBlank()) {
-            User userWithSamePhone = userRepository.findByPhone(updatedData.getPhone());
-            if (userWithSamePhone != null && userWithSamePhone.getId() != id) {
-                throw new IllegalArgumentException("Phone already in use: " + updatedData.getPhone());
-            }
-        }
-
-        existingUser.setFirstname(updatedData.getFirstname());
-        existingUser.setLastname(updatedData.getLastname());
-        existingUser.setEmail(updatedData.getEmail());
-        existingUser.setPhone(updatedData.getPhone());
-
-        if (updatedData.getPassword() != null && !updatedData.getPassword().isEmpty()) {
-            existingUser.setPassword(bCryptPasswordEncoder.encode(updatedData.getPassword()));
-        }
-
-        return userRepository.save(existingUser);
-    }
-
-    public void deleteUser(Integer id){
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found with id: " + id);
-        }
-        userRepository.deleteById(id);
-    }
-
     public User addUser(UserRegistrationRequest request){
         boolean hasEmail = request.getEmail() != null && !request.getEmail().isBlank();
         boolean hasPhone = request.getPhone() != null && !request.getPhone().isBlank();
@@ -72,10 +37,12 @@ public class UserService {
         if (!hasEmail && !hasPhone) {
             throw new IllegalArgumentException("Please provide an email or a phone number");
         }
-        if (hasEmail && userRepository.findByEmail(request.getEmail()) != null) {
+        if (hasEmail && (userRepository.findByEmail(request.getEmail()) != null
+                || userRepository.findByPhone(request.getEmail()) != null)) {
             throw new IllegalArgumentException("Email already exists: " + request.getEmail());
         }
-        if (hasPhone && userRepository.findByPhone(request.getPhone()) != null) {
+        if (hasPhone && (userRepository.findByPhone(request.getPhone()) != null
+                || userRepository.findByEmail(request.getPhone()) != null)) {
             throw new IllegalArgumentException("Phone number already exists: " + request.getPhone());
         }
 
@@ -93,8 +60,50 @@ public class UserService {
         }
     }
 
-    // Name kept as "getUserByUsername" to avoid renaming every call site,
-    // but it now looks up by whatever identifier (email or phone) was passed in.
+    public User updateUser(Integer id, User updatedData) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        String normalizedEmail = (updatedData.getEmail() != null && !updatedData.getEmail().isBlank())
+                ? updatedData.getEmail() : null;
+        String normalizedPhone = (updatedData.getPhone() != null && !updatedData.getPhone().isBlank())
+                ? updatedData.getPhone() : null;
+
+        if (normalizedEmail == null && normalizedPhone == null) {
+            throw new IllegalArgumentException("Please provide an email or a phone number");
+        }
+
+        if (normalizedEmail != null) {
+            User conflict = userRepository.findByEmail(normalizedEmail);
+            if (conflict == null) {
+                conflict = userRepository.findByPhone(normalizedEmail);
+            }
+            if (conflict != null && !Objects.equals(conflict.getId(), id)) {
+                throw new IllegalArgumentException("Email already in use: " + normalizedEmail);
+            }
+        }
+        if (normalizedPhone != null) {
+            User conflict = userRepository.findByPhone(normalizedPhone);
+            if (conflict == null) {
+                conflict = userRepository.findByEmail(normalizedPhone);
+            }
+            if (conflict != null && !Objects.equals(conflict.getId(), id)) {
+                throw new IllegalArgumentException("Phone already in use: " + normalizedPhone);
+            }
+        }
+
+        existingUser.setFirstname(updatedData.getFirstname());
+        existingUser.setLastname(updatedData.getLastname());
+        existingUser.setEmail(normalizedEmail);
+        existingUser.setPhone(normalizedPhone);
+
+        if (updatedData.getPassword() != null && !updatedData.getPassword().isEmpty()) {
+            existingUser.setPassword(bCryptPasswordEncoder.encode(updatedData.getPassword()));
+        }
+
+        return userRepository.save(existingUser);
+    }
+
     public User getUserByUsername(String identifier) {
         User user = userRepository.findByEmailOrPhone(identifier);
         if (user == null) {
