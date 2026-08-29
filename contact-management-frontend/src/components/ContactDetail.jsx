@@ -114,8 +114,6 @@ const ContactDetail = ({ updateContact, updateImage }) => {
         fetchContact(id);
     }, [id]);
 
-    const primaryEmail = contact.emails.find(e => e.email)?.email || '';
-
     return (
         <>
             <Link to={'/contacts'} className='link'><i className='bi bi-arrow-left'></i> Back to list</Link>
