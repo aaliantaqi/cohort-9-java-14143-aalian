@@ -60,6 +60,12 @@ public class UserService {
         }
     }
 
+    public void deleteUser(Integer id){
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("User not found with id: " + id);
+        }
+        userRepository.deleteById(id);
+    }
     public User updateUser(Integer id, User updatedData) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
