@@ -6,11 +6,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.5.5</version>
-<<<<<<< HEAD
-        <relativePath/> <!-- lookup parent from repository -->
-=======
         <relativePath/>
->>>>>>> 8d27e5a (Fix pom.xml Spring Boot version, restore missing deleteUser method, add updated test suite)
     </parent>
     <groupId>com.tenpearls</groupId>
     <artifactId>Contact-Management-System</artifactId>
