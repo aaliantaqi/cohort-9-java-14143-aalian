@@ -49,8 +49,7 @@ const ContactDetail = ({ updateContact, updateImage }) => {
             const { data } = await getContact(id);
             setContact({
                 ...normalizeContact(data),
-                photoUrl: `${data.photoUrl}?updated_at=${new Date().getTime()}`
-            });
+photoUrl: `${data.photoUrl}?updated_at=${Date.now()}`            });
 
             toastSuccess('Photo updated');
         } catch (error) {
@@ -118,8 +117,7 @@ const ContactDetail = ({ updateContact, updateImage }) => {
             <Link to={'/contacts'} className='link'><i className='bi bi-arrow-left'></i> Back to list</Link>
             <div className='profile'>
                 <div className='profile__details'>
-                    <img src={contact.photoUrl} alt={`Profile photo of ${contact.firstname} ${contact.lastname}`} />
-                    <div className='profile__metadata'>
+                    <img src={contact.photoUrl} alt={`${contact.firstname} ${contact.lastname}`} />                    <div className='profile__metadata'>
                         <p className='profile__name'>{contact.firstname} {contact.lastname}</p>
                         <p className='profile__muted'>JPG, GIF, or PNG. Max size of 10MG</p>
                         <button onClick={selectImage} className='btn'><i className='bi bi-cloud-upload'></i> Change Photo</button>

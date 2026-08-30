@@ -545,15 +545,14 @@ h6 {
 	justify-content: center;
 	gap: 2px;
 }
-
 .pagination button {
 	color: var(--text-primary);
 	padding: 8px 14px;
 	background: none;
 	border: 1px solid var(--border);
 	cursor: pointer;
-	font-size: 13.5px;
 	font: inherit;
+	font-size: 13.5px;
 	transition: background var(--transition), border-color var(--transition);
 }
 

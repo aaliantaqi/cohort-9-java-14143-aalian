@@ -111,7 +111,13 @@ function Profile() {
       <dialog ref={modalRef} className="modal" id="changePasswordModal">
         <div className="modal__header">
           <h3>Change Password</h3>
-          <i onClick={() => toggleModal(false)} className="bi bi-x-lg"></i>
+          <i
+            onClick={() => toggleModal(false)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleModal(false); }}
+            role="button"
+            tabIndex={0}
+            className="bi bi-x-lg"
+          ></i>
         </div>
         <div className="divider"></div>
         <div className="modal__body">
@@ -348,7 +354,13 @@ function App() {
           <dialog ref={modalRef} className="modal" id="modal">
             <div className="modal__header">
               <h3>New Contact</h3>
-              <i onClick={handleCancelNewContact} className="bi bi-x-lg"></i>
+              <i
+                onClick={handleCancelNewContact}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCancelNewContact(); }}
+                role="button"
+                tabIndex={0}
+                className="bi bi-x-lg"
+              ></i>
             </div>
             <div className="divider"></div>
             <div className="modal__body">
@@ -516,7 +528,13 @@ function App() {
           <dialog ref={deleteModalRef} className="modal" id="deleteConfirmModal" style={{ maxWidth: '400px' }}>
             <div className="modal__header">
               <h3>Delete Contact</h3>
-              <i onClick={cancelDeleteContact} className="bi bi-x-lg"></i>
+              <i
+                onClick={cancelDeleteContact}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') cancelDeleteContact(); }}
+                role="button"
+                tabIndex={0}
+                className="bi bi-x-lg"
+              ></i>
             </div>
             <div className="divider"></div>
             <div className="modal__body">
