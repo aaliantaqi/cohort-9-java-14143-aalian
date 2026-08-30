@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getContact } from '../api/ContactService';
+import { getContact, makeId } from '../api/ContactService';
 import { toastError, toastSuccess } from '../api/ToastService';
 
-const makeId = () => (typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `row-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
 const ContactDetail = ({ updateContact, updateImage }) => {
     const inputRef = useRef();

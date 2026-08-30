@@ -5,6 +5,12 @@ const API_URL = "/api/contacts";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+let idCounter = 0;
+
+export const makeId = () => (typeof crypto !== 'undefined' && crypto.randomUUID
+  ? crypto.randomUUID()
+  : `row-${Date.now()}-${++idCounter}`);
+  
 function validateContactId(id) {
     if (typeof id !== 'string' || !UUID_PATTERN.test(id)) {
         throw new Error('Invalid contact id');

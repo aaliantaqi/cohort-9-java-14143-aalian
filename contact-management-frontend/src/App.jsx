@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header'
 import ContactList from './components/ContactList'
-import { getContacts, saveContact, updatePhoto, updateContact as updateContactApi, deleteContact, getProfile, changePassword } from './api/ContactService';
-import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
+import { getContacts, saveContact, updatePhoto, updateContact as updateContactApi, deleteContact, getProfile, changePassword, makeId } from './api/ContactService';import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import ContactDetail from './components/ContactDetail';
 import { toastError, toastSuccess } from './api/ToastService';
 import { ToastContainer } from 'react-toastify';
@@ -12,9 +11,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
 import Registration from './components/Registration';
 
-const makeId = () => (typeof crypto !== 'undefined' && crypto.randomUUID
-  ? crypto.randomUUID()
-  : `row-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
 function Profile() {
   const modalRef = useRef();
