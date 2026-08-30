@@ -21,7 +21,7 @@ const ContactList = ({data, currentPage, getAllContacts, deleteContact}) => {
                         className={isFirstPage ? 'disabled' : ''}
                     > &laquo; </button>
 
-                    {[...Array(data.totalPages).keys()].map((page) =>
+                    {[...new Array(data.totalPages).keys()].map((page) =>
                         <button
                             type="button"
                             onClick={() => getAllContacts(page)}

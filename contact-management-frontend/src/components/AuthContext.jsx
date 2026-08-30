@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react'
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -18,6 +18,8 @@ export const AuthProvider = ({ children }) => {
             const response = await axios.get('/api/me', { withCredentials: true });
             setIsAuthenticated(response.status === 200);
         } catch (error) {
+            // Any error (401 unauthenticated, network failure, etc.) is treated
+            // as "not logged in" — the specific error doesn't change the outcome.
             setIsAuthenticated(false);
         } finally {
             setLoading(false);
@@ -34,8 +36,13 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     };
 
+    const value = useMemo(
+        () => ({ isAuthenticated, loading, login, logout, checkAuthStatus }),
+        [isAuthenticated, loading]
+    );
+
     return (
-        <AuthContext.Provider value={{ isAuthenticated, loading, login, logout, checkAuthStatus }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

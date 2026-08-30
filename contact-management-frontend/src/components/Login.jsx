@@ -19,7 +19,7 @@ import { useAuth } from './AuthContext';
 import { toastInfo } from '../api/ToastService';
 
 export default function Login() {
-    const [username, setUsername] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
@@ -30,7 +30,7 @@ export default function Login() {
         e.preventDefault();
         setError('');
 
-        const loginData = { username, password };
+        const loginData = { identifier, password };
 
         try {
             const response = await axios.post('/api/login', loginData, {
@@ -46,7 +46,7 @@ export default function Login() {
         catch (error) {
             console.log('Login failed with status:', error.response?.status);
             if (error.response?.status === 401 || error.response?.status === 403) {
-                setError('Invalid username or password. Please retry!');
+                setError('Invalid email/phone or password. Please retry!');
             } else if (error.response) {
                 setError('Something went wrong on our end. Please try again shortly.');
             } else {
@@ -80,12 +80,12 @@ export default function Login() {
                         )}
 
                         <TextField
-                            label="Username"
+                            label="Email or Phone Number"
                             variant="outlined"
                             size="small"
                             fullWidth
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
                             required
                         />
 
