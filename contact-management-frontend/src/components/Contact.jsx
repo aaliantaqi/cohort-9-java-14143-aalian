@@ -14,6 +14,14 @@ const Contact = ({contact, deleteContact}) => {
   const primaryEmail = contact.emails?.[0];
   const primaryPhone = contact.phones?.[0];
 
+  const primaryEmailText = primaryEmail
+    ? `${primaryEmail.label ? primaryEmail.label + ': ' : ''}${primaryEmail.email.substring(0, 20)}`
+    : '';
+
+  const primaryPhoneText = primaryPhone
+    ? `${primaryPhone.label ? primaryPhone.label + ': ' : ''}${primaryPhone.phone}`
+    : '';
+
   return (
     <Link to={`/contacts/${contact.id}`} className="contact__item">
         <div className="contact__left">
@@ -25,9 +33,9 @@ const Contact = ({contact, deleteContact}) => {
         </div>
         <div className="contact__content">
             <div className="contact__body">
-                <p><i className="bi bi-envelope"></i> {primaryEmail ? `${primaryEmail.label ? primaryEmail.label + ': ' : ''}${primaryEmail.email.substring(0, 20)}` : ''}</p>
+                <p><i className="bi bi-envelope"></i> {primaryEmailText}</p>
                 <p><i className="bi bi-geo"></i> {contact.address}</p>
-                <p><i className="bi bi-telephone"></i> {primaryPhone ? `${primaryPhone.label ? primaryPhone.label + ': ' : ''}${primaryPhone.phone}` : ''}</p>
+                <p><i className="bi bi-telephone"></i> {primaryPhoneText}</p>
                 <p className="contact__status-row">
                     <span>
                         {contact.status === 'Active' ? <i className="bi bi-check-circle"></i> : <i className="bi bi-x-circle"></i>} {contact.status}

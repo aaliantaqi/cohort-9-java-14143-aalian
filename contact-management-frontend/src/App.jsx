@@ -12,6 +12,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
 import Registration from './components/Registration';
 
+const makeId = () => (typeof crypto !== 'undefined' && crypto.randomUUID
+  ? crypto.randomUUID()
+  : `row-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
 function Profile() {
   const modalRef = useRef();
   const [profile, setProfile] = useState({ firstname: '', lastname: '', email: '', phone: '' });
@@ -111,13 +115,9 @@ function Profile() {
       <dialog ref={modalRef} className="modal" id="changePasswordModal">
         <div className="modal__header">
           <h3>Change Password</h3>
-          <i
-            onClick={() => toggleModal(false)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleModal(false); }}
-            role="button"
-            tabIndex={0}
-            className="bi bi-x-lg"
-          ></i>
+          <button type="button" onClick={() => toggleModal(false)} className="modal__close" aria-label="Close">
+            <i className="bi bi-x-lg"></i>
+          </button>
         </div>
         <div className="divider"></div>
         <div className="modal__body">
@@ -163,8 +163,8 @@ function App() {
     title: '',
     address: '',
     status: '',
-    emails: [{ label: '', email: '' }],
-    phones: [{ label: '', phone: '' }],
+    emails: [{ label: '', email: '', _key: makeId() }],
+    phones: [{ label: '', phone: '', _key: makeId() }],
   });
 
   const location = useLocation();
@@ -221,12 +221,12 @@ function App() {
   };
 
   const addEmailRow = () => {
-    setValues({ ...values, emails: [...values.emails, { label: '', email: '' }] });
+    setValues({ ...values, emails: [...values.emails, { label: '', email: '', _key: makeId() }] });
   };
 
   const removeEmailRow = (index) => {
     const updatedEmails = values.emails.filter((_, i) => i !== index);
-    setValues({ ...values, emails: updatedEmails.length > 0 ? updatedEmails : [{ label: '', email: '' }] });
+    setValues({ ...values, emails: updatedEmails.length > 0 ? updatedEmails : [{ label: '', email: '', _key: makeId() }] });
   };
 
   const onPhoneChange = (index, field, value) => {
@@ -236,12 +236,12 @@ function App() {
   };
 
   const addPhoneRow = () => {
-    setValues({ ...values, phones: [...values.phones, { label: '', phone: '' }] });
+    setValues({ ...values, phones: [...values.phones, { label: '', phone: '', _key: makeId() }] });
   };
 
   const removePhoneRow = (index) => {
     const updatedPhones = values.phones.filter((_, i) => i !== index);
-    setValues({ ...values, phones: updatedPhones.length > 0 ? updatedPhones : [{ label: '', phone: '' }] });
+    setValues({ ...values, phones: updatedPhones.length > 0 ? updatedPhones : [{ label: '', phone: '', _key: makeId() }] });
   };
 
   const handleNewContact = async (event) => {
@@ -249,8 +249,8 @@ function App() {
     try {
       const payload = {
         ...values,
-        emails: values.emails.filter(e => e.email.trim() !== ''),
-        phones: values.phones.filter(p => p.phone.trim() !== ''),
+        emails: values.emails.filter(e => e.email.trim() !== '').map(({ _key, ...rest }) => rest),
+        phones: values.phones.filter(p => p.phone.trim() !== '').map(({ _key, ...rest }) => rest),
       };
       const { data } = await saveContact(payload);
       toggleModal(false);
@@ -281,8 +281,8 @@ function App() {
       title: '',
       address: '',
       status: '',
-      emails: [{ label: '', email: '' }],
-      phones: [{ label: '', phone: '' }],
+      emails: [{ label: '', email: '', _key: makeId() }],
+      phones: [{ label: '', phone: '', _key: makeId() }],
     });
     setFile(undefined);
     if (fileRef.current) {
@@ -301,7 +301,7 @@ function App() {
 
   const updateContact = async (contact) => {
     try {
-      const { data } = await updateContactApi(contact.id, contact);
+      await updateContactApi(contact.id, contact);
     } catch (error) {
       console.log(error);
       toastError(error.message);
@@ -354,13 +354,9 @@ function App() {
           <dialog ref={modalRef} className="modal" id="modal">
             <div className="modal__header">
               <h3>New Contact</h3>
-              <i
-                onClick={handleCancelNewContact}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCancelNewContact(); }}
-                role="button"
-                tabIndex={0}
-                className="bi bi-x-lg"
-              ></i>
+              <button type="button" onClick={handleCancelNewContact} className="modal__close" aria-label="Close">
+                <i className="bi bi-x-lg"></i>
+              </button>
             </div>
             <div className="divider"></div>
             <div className="modal__body">
@@ -418,7 +414,7 @@ function App() {
                   <span style={{ flex: 1 }}>Email</span>
                 </div>
                 {values.emails.map((emailRow, index) => (
-                  <div key={index} style={{ marginBottom: '0.6rem' }}>
+                  <div key={emailRow._key} style={{ marginBottom: '0.6rem' }}>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                       <select
                         style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
@@ -470,7 +466,7 @@ function App() {
                   <span style={{ flex: 1 }}>Phone</span>
                 </div>
                 {values.phones.map((phoneRow, index) => (
-                  <div key={index} style={{ marginBottom: '0.6rem' }}>
+                  <div key={phoneRow._key} style={{ marginBottom: '0.6rem' }}>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                       <select
                         style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
@@ -515,8 +511,6 @@ function App() {
                   </div>
                 ))}
 
-
-
                 <div className="form_footer">
                   <button onClick={handleCancelNewContact} type='button' className="btn btn-danger">Cancel</button>
                   <button type='submit' className="btn">Save</button>
@@ -528,13 +522,9 @@ function App() {
           <dialog ref={deleteModalRef} className="modal" id="deleteConfirmModal" style={{ maxWidth: '400px' }}>
             <div className="modal__header">
               <h3>Delete Contact</h3>
-              <i
-                onClick={cancelDeleteContact}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') cancelDeleteContact(); }}
-                role="button"
-                tabIndex={0}
-                className="bi bi-x-lg"
-              ></i>
+              <button type="button" onClick={cancelDeleteContact} className="modal__close" aria-label="Close">
+                <i className="bi bi-x-lg"></i>
+              </button>
             </div>
             <div className="divider"></div>
             <div className="modal__body">

@@ -536,7 +536,14 @@ h6 {
 	opacity: .6;
 }
 
-
+.modal__close {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: inherit;
+  color: inherit;
+}
 
 .pagination {
 	margin-top: var(--sp-8);

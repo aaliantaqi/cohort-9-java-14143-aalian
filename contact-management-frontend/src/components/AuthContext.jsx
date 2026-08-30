@@ -18,8 +18,7 @@ export const AuthProvider = ({ children }) => {
             const response = await axios.get('/api/me', { withCredentials: true });
             setIsAuthenticated(response.status === 200);
         } catch (error) {
-            // Any error (401 unauthenticated, network failure, etc.) is treated
-            // as "not logged in" — the specific error doesn't change the outcome.
+            console.debug('checkAuthStatus: treating error as unauthenticated', error);
             setIsAuthenticated(false);
         } finally {
             setLoading(false);
