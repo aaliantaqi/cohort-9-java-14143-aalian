@@ -3,6 +3,10 @@ import { Link, useParams } from 'react-router-dom';
 import { getContact } from '../api/ContactService';
 import { toastError, toastSuccess } from '../api/ToastService';
 
+const makeId = () => (typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `row-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
 const ContactDetail = ({ updateContact, updateImage }) => {
     const inputRef = useRef();
     const [contact, setContact] = useState({
@@ -21,8 +25,12 @@ const ContactDetail = ({ updateContact, updateImage }) => {
 
     const normalizeContact = (data) => ({
         ...data,
-        emails: data.emails && data.emails.length > 0 ? data.emails : [{ label: '', email: '' }],
-        phones: data.phones && data.phones.length > 0 ? data.phones : [{ label: '', phone: '' }]
+        emails: data.emails && data.emails.length > 0
+            ? data.emails.map((e) => ({ ...e, _key: e._key ?? makeId() }))
+            : [{ label: '', email: '', _key: makeId() }],
+        phones: data.phones && data.phones.length > 0
+            ? data.phones.map((p) => ({ ...p, _key: p._key ?? makeId() }))
+            : [{ label: '', phone: '', _key: makeId() }]
     });
 
     const fetchContact = async (id) => {
@@ -49,7 +57,8 @@ const ContactDetail = ({ updateContact, updateImage }) => {
             const { data } = await getContact(id);
             setContact({
                 ...normalizeContact(data),
-photoUrl: `${data.photoUrl}?updated_at=${Date.now()}`            });
+                photoUrl: `${data.photoUrl}?updated_at=${Date.now()}`
+            });
 
             toastSuccess('Photo updated');
         } catch (error) {
@@ -69,12 +78,12 @@ photoUrl: `${data.photoUrl}?updated_at=${Date.now()}`            });
     };
 
     const addEmailRow = () => {
-        setContact({ ...contact, emails: [...contact.emails, { label: '', email: '' }] });
+        setContact({ ...contact, emails: [...contact.emails, { label: '', email: '', _key: makeId() }] });
     };
 
     const removeEmailRow = (index) => {
         const updatedEmails = contact.emails.filter((_, i) => i !== index);
-        setContact({ ...contact, emails: updatedEmails.length > 0 ? updatedEmails : [{ label: '', email: '' }] });
+        setContact({ ...contact, emails: updatedEmails.length > 0 ? updatedEmails : [{ label: '', email: '', _key: makeId() }] });
     };
 
     const onPhoneChange = (index, field, value) => {
@@ -84,12 +93,12 @@ photoUrl: `${data.photoUrl}?updated_at=${Date.now()}`            });
     };
 
     const addPhoneRow = () => {
-        setContact({ ...contact, phones: [...contact.phones, { label: '', phone: '' }] });
+        setContact({ ...contact, phones: [...contact.phones, { label: '', phone: '', _key: makeId() }] });
     };
 
     const removePhoneRow = (index) => {
         const updatedPhones = contact.phones.filter((_, i) => i !== index);
-        setContact({ ...contact, phones: updatedPhones.length > 0 ? updatedPhones : [{ label: '', phone: '' }] });
+        setContact({ ...contact, phones: updatedPhones.length > 0 ? updatedPhones : [{ label: '', phone: '', _key: makeId() }] });
     };
 
     const onUpdateContact = async (event) => {
@@ -97,8 +106,8 @@ photoUrl: `${data.photoUrl}?updated_at=${Date.now()}`            });
         try {
             const payload = {
                 ...contact,
-                emails: contact.emails.filter(e => e.email.trim() !== ''),
-                phones: contact.phones.filter(p => p.phone.trim() !== ''),
+                emails: contact.emails.filter(e => e.email.trim() !== '').map(({ _key, ...rest }) => rest),
+                phones: contact.phones.filter(p => p.phone.trim() !== '').map(({ _key, ...rest }) => rest),
             };
             await updateContact(payload);
             fetchContact(id);
@@ -117,7 +126,8 @@ photoUrl: `${data.photoUrl}?updated_at=${Date.now()}`            });
             <Link to={'/contacts'} className='link'><i className='bi bi-arrow-left'></i> Back to list</Link>
             <div className='profile'>
                 <div className='profile__details'>
-                    <img src={contact.photoUrl} alt={`${contact.firstname} ${contact.lastname}`} />                    <div className='profile__metadata'>
+                    <img src={contact.photoUrl} alt={`${contact.firstname} ${contact.lastname}`} />
+                    <div className='profile__metadata'>
                         <p className='profile__name'>{contact.firstname} {contact.lastname}</p>
                         <p className='profile__muted'>JPG, GIF, or PNG. Max size of 10MG</p>
                         <button onClick={selectImage} className='btn'><i className='bi bi-cloud-upload'></i> Change Photo</button>
@@ -157,7 +167,7 @@ photoUrl: `${data.photoUrl}?updated_at=${Date.now()}`            });
                                 <span style={{ flex: 1 }}>Email</span>
                             </div>
                             {contact.emails.map((emailRow, index) => (
-                                <div key={index} style={{ marginBottom: '0.6rem' }}>
+                                <div key={emailRow._key} style={{ marginBottom: '0.6rem' }}>
                                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                                         <select
                                             style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
@@ -209,7 +219,7 @@ photoUrl: `${data.photoUrl}?updated_at=${Date.now()}`            });
                                 <span style={{ flex: 1 }}>Phone</span>
                             </div>
                             {contact.phones.map((phoneRow, index) => (
-                                <div key={index} style={{ marginBottom: '0.6rem' }}>
+                                <div key={phoneRow._key} style={{ marginBottom: '0.6rem' }}>
                                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                                         <select
                                             style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
