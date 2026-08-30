@@ -29,7 +29,6 @@ const ContactDetail = ({ updateContact, updateImage }) => {
         try {
             const { data } = await getContact(id);
             setContact(normalizeContact(data));
-            console.log(data);
         } catch (error) {
             console.log(error);
             toastError(error.message);

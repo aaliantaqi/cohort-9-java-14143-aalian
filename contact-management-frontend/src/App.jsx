@@ -169,7 +169,6 @@ function App() {
       setCurrentPage(page);
       const { data } = await getContacts(page, size, search);
       setData(data);
-      console.log(data);
     } catch (error) {
       console.log(error);
       toastError(error.message);
@@ -297,7 +296,6 @@ function App() {
   const updateContact = async (contact) => {
     try {
       const { data } = await updateContactApi(contact.id, contact);
-      console.log(data);
     } catch (error) {
       console.log(error);
       toastError(error.message);

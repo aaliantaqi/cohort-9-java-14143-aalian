@@ -3,6 +3,14 @@ import { getCsrfToken } from '../csrf';
 
 const API_URL = "/api/contacts";
 
+function validateContactId(id) {
+    const contactId = Number(id);
+    if (!Number.isInteger(contactId) || contactId <= 0) {
+        throw new Error('Invalid contact id');
+    }
+    return contactId;
+}
+
 export async function saveContact(contact) {
     return await axios.post(API_URL, contact, {
         withCredentials: true,
@@ -16,13 +24,13 @@ export async function getContacts(page = 0, size = 10, search = '') {
 }
 
 export async function getContact(id) {
-    return await axios.get(`${API_URL}/${id}`, { withCredentials: true });
+    const contactId = validateContactId(id);
+    return await axios.get(`${API_URL}/${contactId}`, { withCredentials: true });
 }
 
-
-
 export async function updateContact(id, contact) {
-    return await axios.put(`${API_URL}/${id}`, contact, {
+    const contactId = validateContactId(id);
+    return await axios.put(`${API_URL}/${contactId}`, contact, {
         withCredentials: true,
         headers: { 'X-XSRF-TOKEN': getCsrfToken() }
     });
@@ -36,7 +44,8 @@ export async function updatePhoto(formData) {
 }
 
 export async function deleteContact(id) {
-    return await axios.delete(`${API_URL}/${id}`, {
+    const contactId = validateContactId(id);
+    return await axios.delete(`${API_URL}/${contactId}`, {
         withCredentials: true,
         headers: { 'X-XSRF-TOKEN': getCsrfToken() }
     });
