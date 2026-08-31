@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getContact, makeId } from '../api/ContactService';
+import { getContact, makeId, makeEmptyEmailRow, makeEmptyPhoneRow } from '../api/ContactService';
 import { toastError, toastSuccess } from '../api/ToastService';
 
 

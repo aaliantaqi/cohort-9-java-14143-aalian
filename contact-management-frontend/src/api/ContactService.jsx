@@ -8,9 +8,12 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 let idCounter = 0;
 
 export const makeId = () => (typeof crypto !== 'undefined' && crypto.randomUUID
-  ? crypto.randomUUID()
-  : `row-${Date.now()}-${++idCounter}`);
-  
+    ? crypto.randomUUID()
+    : `row-${Date.now()}-${++idCounter}`);
+
+export const makeEmptyEmailRow = () => ({ label: '', email: '', _key: makeId() });
+export const makeEmptyPhoneRow = () => ({ label: '', phone: '', _key: makeId() });
+
 function validateContactId(id) {
     if (typeof id !== 'string' || !UUID_PATTERN.test(id)) {
         throw new Error('Invalid contact id');
