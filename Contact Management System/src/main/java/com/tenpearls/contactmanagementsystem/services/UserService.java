@@ -6,6 +6,7 @@ import com.tenpearls.contactmanagementsystem.repositories.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import java.util.Objects;
 
 import java.util.List;
 
@@ -29,24 +30,34 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
-    public User updateUser(Integer id, User updatedData) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+    public User addUser(UserRegistrationRequest request){
+        boolean hasEmail = request.getEmail() != null && !request.getEmail().isBlank();
+        boolean hasPhone = request.getPhone() != null && !request.getPhone().isBlank();
 
-        User userWithSameUsername = userRepository.findByUsername(updatedData.getUsername());
-        if (userWithSameUsername != null && userWithSameUsername.getId() != id) {
-            throw new IllegalArgumentException("Username already exists: " + updatedData.getUsername());
+        if (!hasEmail && !hasPhone) {
+            throw new IllegalArgumentException("Please provide an email or a phone number");
+        }
+        if (hasEmail && (userRepository.findByEmail(request.getEmail()) != null
+                || userRepository.findByPhone(request.getEmail()) != null)) {
+            throw new IllegalArgumentException("Email already exists: " + request.getEmail());
+        }
+        if (hasPhone && (userRepository.findByPhone(request.getPhone()) != null
+                || userRepository.findByEmail(request.getPhone()) != null)) {
+            throw new IllegalArgumentException("Phone number already exists: " + request.getPhone());
         }
 
-        existingUser.setFirstname(updatedData.getFirstname());
-        existingUser.setLastname(updatedData.getLastname());
-        existingUser.setUsername(updatedData.getUsername());
+        User user = new User();
+        user.setFirstname(request.getFirstname());
+        user.setLastname(request.getLastname());
+        user.setEmail(hasEmail ? request.getEmail() : null);
+        user.setPhone(hasPhone ? request.getPhone() : null);
+        user.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
 
-        if (updatedData.getPassword() != null && !updatedData.getPassword().isEmpty()) {
-            existingUser.setPassword(bCryptPasswordEncoder.encode(updatedData.getPassword()));
+        try {
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Email or phone already exists");
         }
-
-        return userRepository.save(existingUser);
     }
 
     public void deleteUser(Integer id){
@@ -55,35 +66,60 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
+    public User updateUser(Integer id, User updatedData) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
+        String normalizedEmail = (updatedData.getEmail() != null && !updatedData.getEmail().isBlank())
+                ? updatedData.getEmail() : null;
+        String normalizedPhone = (updatedData.getPhone() != null && !updatedData.getPhone().isBlank())
+                ? updatedData.getPhone() : null;
 
-    public User addUser(UserRegistrationRequest request){
-        if (userRepository.findByUsername(request.getUsername()) != null) {
-            throw new IllegalArgumentException("Username already exists: " + request.getUsername());
+        if (normalizedEmail == null && normalizedPhone == null) {
+            throw new IllegalArgumentException("Please provide an email or a phone number");
         }
 
-        User user = new User();
-        user.setFirstname(request.getFirstname());
-        user.setLastname(request.getLastname());
-        user.setUsername(request.getUsername());
-        user.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
-
-        try {
-            return userRepository.save(user);
-        } catch (DataIntegrityViolationException e) {
-            throw new IllegalArgumentException("Username already exists: " + request.getUsername());
+        if (normalizedEmail != null) {
+            User conflict = userRepository.findByEmail(normalizedEmail);
+            if (conflict == null) {
+                conflict = userRepository.findByPhone(normalizedEmail);
+            }
+            if (conflict != null && !Objects.equals(conflict.getId(), id)) {
+                throw new IllegalArgumentException("Email already in use: " + normalizedEmail);
+            }
         }
+        if (normalizedPhone != null) {
+            User conflict = userRepository.findByPhone(normalizedPhone);
+            if (conflict == null) {
+                conflict = userRepository.findByEmail(normalizedPhone);
+            }
+            if (conflict != null && !Objects.equals(conflict.getId(), id)) {
+                throw new IllegalArgumentException("Phone already in use: " + normalizedPhone);
+            }
+        }
+
+        existingUser.setFirstname(updatedData.getFirstname());
+        existingUser.setLastname(updatedData.getLastname());
+        existingUser.setEmail(normalizedEmail);
+        existingUser.setPhone(normalizedPhone);
+
+        if (updatedData.getPassword() != null && !updatedData.getPassword().isEmpty()) {
+            existingUser.setPassword(bCryptPasswordEncoder.encode(updatedData.getPassword()));
+        }
+
+        return userRepository.save(existingUser);
     }
-    public User getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username);
+
+    public User getUserByUsername(String identifier) {
+        User user = userRepository.findByEmailOrPhone(identifier);
         if (user == null) {
-            throw new RuntimeException("User not found: " + username);
+            throw new RuntimeException("User not found: " + identifier);
         }
         return user;
     }
 
-    public void changePassword(String username, String currentPassword, String newPassword) {
-        User user = getUserByUsername(username);
+    public void changePassword(String identifier, String currentPassword, String newPassword) {
+        User user = getUserByUsername(identifier);
 
         if (!bCryptPasswordEncoder.matches(currentPassword, user.getPassword())) {
             throw new IllegalArgumentException("Current password is incorrect");

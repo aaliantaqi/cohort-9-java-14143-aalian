@@ -78,10 +78,12 @@ public class UserController {
     public ResponseEntity<?> newUser(@RequestBody UserRegistrationRequest request){
         try {
             User newUser = userService.addUser(request);
-            logger.info("New user registered: '{}'", newUser.getUsername());
+            String identifier = newUser.getEmail() != null ? newUser.getEmail() : newUser.getPhone();
+            logger.info("New user registered: '{}'", identifier);
             return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
         } catch (IllegalArgumentException e) {
-            logger.warn("Registration failed for username '{}': {}", request.getUsername(), e.getMessage());
+            String attempted = request.getEmail() != null ? request.getEmail() : request.getPhone();
+            logger.warn("Registration failed for '{}': {}", attempted, e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
@@ -107,7 +109,8 @@ public class UserController {
         profile.put("id", user.getId());
         profile.put("firstname", user.getFirstname());
         profile.put("lastname", user.getLastname());
-        profile.put("username", user.getUsername());
+        profile.put("email", user.getEmail());
+        profile.put("phone", user.getPhone());
         return ResponseEntity.ok(profile);
     }
 
@@ -128,14 +131,14 @@ public class UserController {
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        String username = SecurityContextHolder.getContext().getAuthentication() != null
+        String identifier = SecurityContextHolder.getContext().getAuthentication() != null
                 ? SecurityContextHolder.getContext().getAuthentication().getName()
                 : "unknown";
         if (session != null) {
             session.invalidate();
         }
         SecurityContextHolder.clearContext();
-        logger.info("User '{}' logged out", username);
+        logger.info("User '{}' logged out", identifier);
         return ResponseEntity.ok("Logout successful");
     }
 
@@ -145,7 +148,7 @@ public class UserController {
                                         HttpServletResponse response) {
         try {
             Authentication authRequest =
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
+                    new UsernamePasswordAuthenticationToken(loginRequest.getIdentifier(), loginRequest.getPassword());
             Authentication authResult = authenticationManager.authenticate(authRequest);
 
             request.getSession().invalidate();
@@ -156,10 +159,10 @@ public class UserController {
             SecurityContextHolder.setContext(context);
             securityContextRepository.saveContext(context, request, response);
 
-            logger.info("User '{}' logged in successfully", loginRequest.getUsername());
+            logger.info("User '{}' logged in successfully", loginRequest.getIdentifier());
             return ResponseEntity.ok("Login was successful!");
         } catch (BadCredentialsException e) {
-            logger.warn("Failed login attempt for username '{}'", loginRequest.getUsername());
+            logger.warn("Failed login attempt for '{}'", loginRequest.getIdentifier());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         } catch (Exception e) {
             logger.error("Unexpected error during login", e);

@@ -45,6 +45,8 @@ public class ContactService {
         }
     }
 
+    private static final Sort DEFAULT_SORT = Sort.by("firstname").and(Sort.by("lastname"));
+
     public Page<Contact> getAllContacts(String username, int page, int size, String search) {
         if (page < 0) {
             throw new IllegalArgumentException("Page number cannot be negative");
@@ -55,9 +57,9 @@ public class ContactService {
         User owner = getOwner(username);
 
         if (search != null && !search.isBlank()) {
-            return contactRepo.findByOwnerIdAndNameContainingIgnoreCase(owner.getId(), search.trim(), PageRequest.of(page, size, Sort.by("name")));
+            return contactRepo.searchByOwnerIdAndNameContainingIgnoreCase(owner.getId(), search.trim(), PageRequest.of(page, size, DEFAULT_SORT));
         }
-        return contactRepo.findByOwnerId(owner.getId(), PageRequest.of(page, size, Sort.by("name")));
+        return contactRepo.findByOwnerId(owner.getId(), PageRequest.of(page, size, DEFAULT_SORT));
     }
 
 
@@ -101,10 +103,10 @@ public class ContactService {
         log.info("Contact deleted (id={})", id);
     }
 
-    private User getOwner(String username) {
-        User user = userRepository.findByUsername(username);
+    private User getOwner(String identifier) {
+        User user = userRepository.findByEmailOrPhone(identifier);
         if (user == null) {
-            throw new RuntimeException("User not found: " + username);
+            throw new RuntimeException("User not found: " + identifier);
         }
         return user;
     }
@@ -151,12 +153,20 @@ public class ContactService {
     public Contact updateContact(String id, Contact updatedData, String username) {
         Contact existingContact = getContact(id, username);
 
-        existingContact.setName(updatedData.getName());
-        existingContact.setPhone(updatedData.getPhone());
-        existingContact.setEmail(updatedData.getEmail());
+        existingContact.setFirstname(updatedData.getFirstname());
+        existingContact.setLastname(updatedData.getLastname());
         existingContact.setTitle(updatedData.getTitle());
         existingContact.setStatus(updatedData.getStatus());
         existingContact.setAddress(updatedData.getAddress());
+
+        if (updatedData.getEmails() == null || updatedData.getPhones() == null) {
+            throw new IllegalArgumentException("Emails and phones lists cannot be null");
+        }
+
+        existingContact.getEmails().clear();
+        existingContact.getEmails().addAll(updatedData.getEmails());
+        existingContact.getPhones().clear();
+        existingContact.getPhones().addAll(updatedData.getPhones());
 
         return contactRepo.save(existingContact);
     }

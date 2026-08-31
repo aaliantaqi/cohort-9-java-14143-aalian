@@ -3,6 +3,7 @@ package com.tenpearls.contactmanagementsystem.controllers;
 import com.tenpearls.contactmanagementsystem.domain.Contact;
 import com.tenpearls.contactmanagementsystem.services.ContactService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,12 +24,14 @@ import static org.springframework.util.MimeTypeUtils.IMAGE_PNG_VALUE;
 @RestController
 @RequestMapping("/api/contacts")
 @RequiredArgsConstructor
+@Slf4j
 public class ContactResource {
     private final ContactService contactService;
 
     @PostMapping
     public ResponseEntity<Contact> createContact(@RequestBody Contact contact, Authentication authentication) {
         Contact newContact = contactService.createContact(contact, authentication.getName());
+        log.info("New contact created (id={})", newContact.getId());
         return ResponseEntity.created(URI.create("/api/contacts/" + newContact.getId())).body(newContact);
     }
 
@@ -50,12 +53,14 @@ public class ContactResource {
                                          @RequestParam("file") MultipartFile file,
                                          Authentication authentication) {
         String photoUrl = contactService.uploadPhoto(id, authentication.getName(), file);
+        log.info("Photo uploaded for contact (id={})", id);
         return ResponseEntity.ok().body(photoUrl);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteContact(@PathVariable("id") String id, Authentication authentication) {
         contactService.deleteContact(id, authentication.getName());
+        log.info("Contact deleted (id={})", id);
         return ResponseEntity.noContent().build();
     }
 
@@ -64,6 +69,7 @@ public class ContactResource {
                                                  @RequestBody Contact contact,
                                                  Authentication authentication) {
         Contact updated = contactService.updateContact(id, contact, authentication.getName());
+        log.info("Contact updated (id={})", id);
         return ResponseEntity.ok(updated);
     }
 
@@ -75,6 +81,7 @@ public class ContactResource {
         try {
             contact = contactService.getContact(id, authentication.getName());
         } catch (ContactService.ContactNotFoundException e) {
+            log.warn("Photo requested for unknown contact (id={})", id);
             return ResponseEntity.notFound().build();
         }
 
@@ -93,6 +100,7 @@ public class ContactResource {
         }
 
         if (filePath == null || !filePath.normalize().startsWith(fileStorageLocation)) {
+            log.warn("Photo file missing on disk for contact (id={})", id);
             return ResponseEntity.notFound().build();
         }
 
