@@ -13,7 +13,9 @@ import {
     Box,
     Typography,
     TextField,
-    Button
+    Button,
+    InputAdornment,
+    IconButton
 } from '@mui/material'
 
 export default function Registration() {
@@ -21,12 +23,15 @@ export default function Registration() {
     const [formData, setFormData] = useState({
         firstname: '',
         lastname: '',
-        username: '',
+        email: '',
+        phone: '',
         password: '',
         confirmPassword: ''
     })
 
     const [error, setError] = useState('')
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const navigate = useNavigate()
 
     const handleChange = (e) => {
@@ -43,6 +48,12 @@ export default function Registration() {
             setError('Passwords do not match');
             return;
         }
+
+        if (!formData.email.trim() && !formData.phone.trim()) {
+            setError('Please provide an email address or a phone number');
+            return;
+        }
+
         setError('')
 
         try {
@@ -62,7 +73,10 @@ export default function Registration() {
         }
         catch (err) {
             console.log('Registration failed with status:', err.response?.status);
-            setError('An error occurred during user registration');
+            const message = typeof err.response?.data === 'string'
+                ? err.response.data
+                : 'An error occurred during user registration';
+            setError(message);
         }
     }
 
@@ -107,35 +121,75 @@ export default function Registration() {
                         />
 
                         <TextField
-                            label="Username"
-                            name="username"
+                            label="Email (optional if phone is provided)"
+                            name="email"
                             size="small"
                             fullWidth
-                            value={formData.username}
+                            value={formData.email}
                             onChange={handleChange}
-                            required
+                        />
+
+                        <TextField
+                            label="Phone Number (optional if email is provided)"
+                            name="phone"
+                            size="small"
+                            fullWidth
+                            value={formData.phone}
+                            onChange={handleChange}
                         />
 
                         <TextField
                             label="Password"
                             name="password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             size="small"
                             fullWidth
                             value={formData.password}
                             onChange={handleChange}
                             required
+                            slotProps={{
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                edge="end"
+                                                size="small"
+                                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                            >
+                                                <i className={showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'} aria-hidden="true"></i>
+                                            </IconButton>
+                                        </InputAdornment>
+                                    )
+                                }
+                            }}
                         />
 
                         <TextField
                             label="Confirm Password"
                             name="confirmPassword"
-                            type="password"
+                            type={showConfirmPassword ? 'text' : 'password'}
                             size="small"
                             fullWidth
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             required
+                            slotProps={{
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                edge="end"
+                                                size="small"
+                                                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                            >
+                                                <i className={showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'} aria-hidden="true"></i>
+                                            </IconButton>
+                                        </InputAdornment>
+                                    )
+                                }
+                            }}
                         />
 
                         <Button type="submit" variant="contained" fullWidth>
