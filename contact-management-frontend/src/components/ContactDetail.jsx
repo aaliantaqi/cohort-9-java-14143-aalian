@@ -24,10 +24,10 @@ const ContactDetail = ({ updateContact, updateImage }) => {
         ...data,
         emails: data.emails && data.emails.length > 0
             ? data.emails.map((e) => ({ ...e, _key: e._key ?? makeId() }))
-            : [{ label: '', email: '', _key: makeId() }],
+            : [makeEmptyEmailRow()],
         phones: data.phones && data.phones.length > 0
             ? data.phones.map((p) => ({ ...p, _key: p._key ?? makeId() }))
-            : [{ label: '', phone: '', _key: makeId() }]
+            : [makeEmptyPhoneRow()]
     });
 
     const fetchContact = async (id) => {
@@ -75,12 +75,12 @@ const ContactDetail = ({ updateContact, updateImage }) => {
     };
 
     const addEmailRow = () => {
-        setContact({ ...contact, emails: [...contact.emails, { label: '', email: '', _key: makeId() }] });
+        setContact({ ...contact, emails: [...contact.emails, makeEmptyEmailRow()] });
     };
 
     const removeEmailRow = (index) => {
         const updatedEmails = contact.emails.filter((_, i) => i !== index);
-        setContact({ ...contact, emails: updatedEmails.length > 0 ? updatedEmails : [{ label: '', email: '', _key: makeId() }] });
+        setContact({ ...contact, emails: updatedEmails.length > 0 ? updatedEmails : [makeEmptyEmailRow()] });
     };
 
     const onPhoneChange = (index, field, value) => {
@@ -90,12 +90,12 @@ const ContactDetail = ({ updateContact, updateImage }) => {
     };
 
     const addPhoneRow = () => {
-        setContact({ ...contact, phones: [...contact.phones, { label: '', phone: '', _key: makeId() }] });
+        setContact({ ...contact, phones: [...contact.phones, makeEmptyPhoneRow()] });
     };
 
     const removePhoneRow = (index) => {
         const updatedPhones = contact.phones.filter((_, i) => i !== index);
-        setContact({ ...contact, phones: updatedPhones.length > 0 ? updatedPhones : [{ label: '', phone: '', _key: makeId() }] });
+        setContact({ ...contact, phones: updatedPhones.length > 0 ? updatedPhones : [makeEmptyPhoneRow()] });
     };
 
     const onUpdateContact = async (event) => {

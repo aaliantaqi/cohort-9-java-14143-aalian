@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header'
 import ContactList from './components/ContactList'
-import { getContacts, saveContact, updatePhoto, updateContact as updateContactApi, deleteContact, getProfile, changePassword, makeId, makeEmptyEmailRow, makeEmptyPhoneRow } from './api/ContactService';
+import { getContacts, saveContact, updatePhoto, updateContact as updateContactApi, deleteContact, getProfile, changePassword, makeEmptyEmailRow, makeEmptyPhoneRow } from './api/ContactService';
 import ContactDetail from './components/ContactDetail';
 import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import { toastError, toastSuccess } from './api/ToastService';
@@ -160,8 +160,8 @@ function App() {
     title: '',
     address: '',
     status: '',
-    emails: [{ label: '', email: '', _key: makeId() }],
-    phones: [{ label: '', phone: '', _key: makeId() }],
+    emails: [makeEmptyEmailRow()],
+    phones: [makeEmptyPhoneRow()],
   });
 
   const location = useLocation();
@@ -218,12 +218,12 @@ function App() {
   };
 
   const addEmailRow = () => {
-    setValues({ ...values, emails: [...values.emails, { label: '', email: '', _key: makeId() }] });
+    setValues({ ...values, emails: [...values.emails, makeEmptyEmailRow()] });
   };
 
   const removeEmailRow = (index) => {
     const updatedEmails = values.emails.filter((_, i) => i !== index);
-    setValues({ ...values, emails: updatedEmails.length > 0 ? updatedEmails : [{ label: '', email: '', _key: makeId() }] });
+    setValues({ ...values, emails: updatedEmails.length > 0 ? updatedEmails : [makeEmptyEmailRow()] });
   };
 
   const onPhoneChange = (index, field, value) => {
@@ -233,12 +233,12 @@ function App() {
   };
 
   const addPhoneRow = () => {
-    setValues({ ...values, phones: [...values.phones, { label: '', phone: '', _key: makeId() }] });
+    setValues({ ...values, phones: [...values.phones, makeEmptyPhoneRow()] });
   };
 
   const removePhoneRow = (index) => {
     const updatedPhones = values.phones.filter((_, i) => i !== index);
-    setValues({ ...values, phones: updatedPhones.length > 0 ? updatedPhones : [{ label: '', phone: '', _key: makeId() }] });
+    setValues({ ...values, phones: updatedPhones.length > 0 ? updatedPhones : [makeEmptyPhoneRow()] });
   };
 
   const handleNewContact = async (event) => {
@@ -278,8 +278,8 @@ function App() {
       title: '',
       address: '',
       status: '',
-      emails: [{ label: '', email: '', _key: makeId() }],
-      phones: [{ label: '', phone: '', _key: makeId() }],
+      emails: [makeEmptyEmailRow()],
+      phones: [makeEmptyPhoneRow()],
     });
     setFile(undefined);
     if (fileRef.current) {
