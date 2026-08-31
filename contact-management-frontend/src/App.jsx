@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header'
 import ContactList from './components/ContactList'
-import { getContacts, saveContact, updatePhoto, updateContact as updateContactApi, deleteContact, getProfile, changePassword, makeId, makeEmptyEmailRow, makeEmptyPhoneRow } from './api/ContactService';import ContactDetail from './components/ContactDetail';
+import { getContacts, saveContact, updatePhoto, updateContact as updateContactApi, deleteContact, getProfile, changePassword, makeId, makeEmptyEmailRow, makeEmptyPhoneRow } from './api/ContactService';
+import ContactDetail from './components/ContactDetail';
+import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import { toastError, toastSuccess } from './api/ToastService';
 import { ToastContainer } from 'react-toastify';
 import { AuthProvider } from './components/AuthContext';
