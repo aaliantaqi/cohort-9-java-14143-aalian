@@ -3,6 +3,99 @@ import { Link, useParams } from 'react-router-dom';
 import { getContact, makeId, makeEmptyEmailRow, makeEmptyPhoneRow, updateRowAt, appendRow, removeRowAt } from '../api/ContactService';
 import { toastError, toastSuccess } from '../api/ToastService';
 
+export function EmailRowsEditor({ emails, onChange, onAdd, onRemove }) {
+    return (
+        <>
+            <span className="details" style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Email Addresses</span>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.35rem', fontSize: '0.8rem', color: '#888' }}>
+                <span style={{ flex: '0 0 35%' }}>Label</span>
+                <span style={{ flex: 1 }}>Email</span>
+            </div>
+            {emails.map((emailRow, index) => (
+                <div key={emailRow._key} style={{ marginBottom: '0.6rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <select
+                            style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
+                            value={emailRow.label}
+                            onChange={(e) => onChange(index, 'label', e.target.value)}
+                            aria-label={`Email label for entry ${index + 1}`}
+                        >
+                            <option value="">Select label</option>
+                            <option value="Work">Work</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Home">Home</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <input
+                            type="email"
+                            style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
+                            value={emailRow.email}
+                            onChange={(e) => onChange(index, 'email', e.target.value)}
+                            aria-label={`Email address for entry ${index + 1}`}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
+                        {index === emails.length - 1 ? (
+                            <button type="button" className="btn" style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }} onClick={onAdd}>
+                                + Add another email
+                            </button>
+                        ) : <span></span>}
+                        <button type="button" className="btn btn-danger" style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }} onClick={() => onRemove(index)}>
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            ))}
+        </>
+    );
+}
+
+export function PhoneRowsEditor({ phones, onChange, onAdd, onRemove }) {
+    return (
+        <>
+            <span className="details" style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Phone Numbers</span>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.35rem', fontSize: '0.8rem', color: '#888' }}>
+                <span style={{ flex: '0 0 35%' }}>Label</span>
+                <span style={{ flex: 1 }}>Phone</span>
+            </div>
+            {phones.map((phoneRow, index) => (
+                <div key={phoneRow._key} style={{ marginBottom: '0.6rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <select
+                            style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
+                            value={phoneRow.label}
+                            onChange={(e) => onChange(index, 'label', e.target.value)}
+                            aria-label={`Phone label for entry ${index + 1}`}
+                        >
+                            <option value="">Select label</option>
+                            <option value="Work">Work</option>
+                            <option value="Home">Home</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <input
+                            type="text"
+                            style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
+                            value={phoneRow.phone}
+                            onChange={(e) => onChange(index, 'phone', e.target.value)}
+                            aria-label={`Phone number for entry ${index + 1}`}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
+                        {index === phones.length - 1 ? (
+                            <button type="button" className="btn" style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }} onClick={onAdd}>
+                                + Add another phone
+                            </button>
+                        ) : <span></span>}
+                        <button type="button" className="btn btn-danger" style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }} onClick={() => onRemove(index)}>
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            ))}
+        </>
+    );
+}
 
 const ContactDetail = ({ updateContact, updateImage }) => {
     const inputRef = useRef();
@@ -150,108 +243,10 @@ const ContactDetail = ({ updateContact, updateImage }) => {
                             </div>
 
                             <div className="divider" style={{ margin: '1rem 0' }}></div>
-                            <span className="details" style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Email Addresses</span>
-                            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.35rem', fontSize: '0.8rem', color: '#888' }}>
-                                <span style={{ flex: '0 0 35%' }}>Label</span>
-                                <span style={{ flex: 1 }}>Email</span>
-                            </div>
-                            {contact.emails.map((emailRow, index) => (
-                                <div key={emailRow._key} style={{ marginBottom: '0.6rem' }}>
-                                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                        <select
-                                            style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
-                                            value={emailRow.label}
-                                            onChange={(e) => onEmailChange(index, 'label', e.target.value)}
-                                            aria-label={`Email label for entry ${index + 1}`}
-                                        >
-                                            <option value="">Select label</option>
-                                            <option value="Work">Work</option>
-                                            <option value="Personal">Personal</option>
-                                            <option value="Home">Home</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                        <input
-                                            type="email"
-                                            style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
-                                            value={emailRow.email}
-                                            onChange={(e) => onEmailChange(index, 'email', e.target.value)}
-                                            aria-label={`Email address for entry ${index + 1}`}
-                                        />
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
-                                        {index === contact.emails.length - 1 ? (
-                                            <button
-                                                type="button"
-                                                className="btn"
-                                                style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
-                                                onClick={addEmailRow}
-                                            >
-                                                + Add another email
-                                            </button>
-                                        ) : <span></span>}
-                                        <button
-                                            type="button"
-                                            className="btn btn-danger"
-                                            style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
-                                            onClick={() => removeEmailRow(index)}
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                            <EmailRowsEditor emails={contact.emails} onChange={onEmailChange} onAdd={addEmailRow} onRemove={removeEmailRow} />
 
                             <div className="divider" style={{ margin: '1rem 0' }}></div>
-                            <span className="details" style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Phone Numbers</span>
-                            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.35rem', fontSize: '0.8rem', color: '#888' }}>
-                                <span style={{ flex: '0 0 35%' }}>Label</span>
-                                <span style={{ flex: 1 }}>Phone</span>
-                            </div>
-                            {contact.phones.map((phoneRow, index) => (
-                                <div key={phoneRow._key} style={{ marginBottom: '0.6rem' }}>
-                                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                        <select
-                                            style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
-                                            value={phoneRow.label}
-                                            onChange={(e) => onPhoneChange(index, 'label', e.target.value)}
-                                            aria-label={`Phone label for entry ${index + 1}`}
-                                        >
-                                            <option value="">Select label</option>
-                                            <option value="Work">Work</option>
-                                            <option value="Home">Home</option>
-                                            <option value="Personal">Personal</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                        <input
-                                            type="text"
-                                            style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
-                                            value={phoneRow.phone}
-                                            onChange={(e) => onPhoneChange(index, 'phone', e.target.value)}
-                                            aria-label={`Phone number for entry ${index + 1}`}
-                                        />
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
-                                        {index === contact.phones.length - 1 ? (
-                                            <button
-                                                type="button"
-                                                className="btn"
-                                                style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
-                                                onClick={addPhoneRow}
-                                            >
-                                                + Add another phone
-                                            </button>
-                                        ) : <span></span>}
-                                        <button
-                                            type="button"
-                                            className="btn btn-danger"
-                                            style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
-                                            onClick={() => removePhoneRow(index)}
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                            <PhoneRowsEditor phones={contact.phones} onChange={onPhoneChange} onAdd={addPhoneRow} onRemove={removePhoneRow} />
 
                             <div className="form_footer">
                                 <button type="submit" className="btn">Save</button>
