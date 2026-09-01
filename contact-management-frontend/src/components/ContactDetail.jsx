@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getContact, makeId, makeEmptyEmailRow, makeEmptyPhoneRow } from '../api/ContactService';
+import { getContact, makeId, makeEmptyEmailRow, makeEmptyPhoneRow, updateRowAt, appendRow, removeRowAt } from '../api/ContactService';
 import { toastError, toastSuccess } from '../api/ToastService';
 
 
@@ -67,37 +67,29 @@ const ContactDetail = ({ updateContact, updateImage }) => {
     const onChange = (event) => {
         setContact({ ...contact, [event.target.name]: event.target.value });
     };
-
     const onEmailChange = (index, field, value) => {
-        const updatedEmails = [...contact.emails];
-        updatedEmails[index] = { ...updatedEmails[index], [field]: value };
-        setContact({ ...contact, emails: updatedEmails });
+        setContact({ ...contact, emails: updateRowAt(contact.emails, index, field, value) });
     };
 
     const addEmailRow = () => {
-        setContact({ ...contact, emails: [...contact.emails, makeEmptyEmailRow()] });
+        setContact({ ...contact, emails: appendRow(contact.emails, makeEmptyEmailRow) });
     };
 
     const removeEmailRow = (index) => {
-        const updatedEmails = contact.emails.filter((_, i) => i !== index);
-        setContact({ ...contact, emails: updatedEmails.length > 0 ? updatedEmails : [makeEmptyEmailRow()] });
+        setContact({ ...contact, emails: removeRowAt(contact.emails, index, makeEmptyEmailRow) });
     };
 
     const onPhoneChange = (index, field, value) => {
-        const updatedPhones = [...contact.phones];
-        updatedPhones[index] = { ...updatedPhones[index], [field]: value };
-        setContact({ ...contact, phones: updatedPhones });
+        setContact({ ...contact, phones: updateRowAt(contact.phones, index, field, value) });
     };
 
     const addPhoneRow = () => {
-        setContact({ ...contact, phones: [...contact.phones, makeEmptyPhoneRow()] });
+        setContact({ ...contact, phones: appendRow(contact.phones, makeEmptyPhoneRow) });
     };
 
     const removePhoneRow = (index) => {
-        const updatedPhones = contact.phones.filter((_, i) => i !== index);
-        setContact({ ...contact, phones: updatedPhones.length > 0 ? updatedPhones : [makeEmptyPhoneRow()] });
+        setContact({ ...contact, phones: removeRowAt(contact.phones, index, makeEmptyPhoneRow) });
     };
-
     const onUpdateContact = async (event) => {
         event.preventDefault();
         try {

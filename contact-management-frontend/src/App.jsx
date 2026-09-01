@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header'
 import ContactList from './components/ContactList'
-import { getContacts, saveContact, updatePhoto, updateContact as updateContactApi, deleteContact, getProfile, changePassword, makeEmptyEmailRow, makeEmptyPhoneRow } from './api/ContactService';
+import { getContacts, saveContact, updatePhoto, updateContact as updateContactApi, deleteContact, getProfile, changePassword, makeEmptyEmailRow, makeEmptyPhoneRow, updateRowAt, appendRow, removeRowAt } from './api/ContactService';
 import ContactDetail from './components/ContactDetail';
 import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import { toastError, toastSuccess } from './api/ToastService';
@@ -210,35 +210,28 @@ function App() {
   const onChange = (event) => {
     setValues({ ...values, [event.target.name]: event.target.value });
   };
-
   const onEmailChange = (index, field, value) => {
-    const updatedEmails = [...values.emails];
-    updatedEmails[index] = { ...updatedEmails[index], [field]: value };
-    setValues({ ...values, emails: updatedEmails });
+    setValues({ ...values, emails: updateRowAt(values.emails, index, field, value) });
   };
 
   const addEmailRow = () => {
-    setValues({ ...values, emails: [...values.emails, makeEmptyEmailRow()] });
+    setValues({ ...values, emails: appendRow(values.emails, makeEmptyEmailRow) });
   };
 
   const removeEmailRow = (index) => {
-    const updatedEmails = values.emails.filter((_, i) => i !== index);
-    setValues({ ...values, emails: updatedEmails.length > 0 ? updatedEmails : [makeEmptyEmailRow()] });
+    setValues({ ...values, emails: removeRowAt(values.emails, index, makeEmptyEmailRow) });
   };
 
   const onPhoneChange = (index, field, value) => {
-    const updatedPhones = [...values.phones];
-    updatedPhones[index] = { ...updatedPhones[index], [field]: value };
-    setValues({ ...values, phones: updatedPhones });
+    setValues({ ...values, phones: updateRowAt(values.phones, index, field, value) });
   };
 
   const addPhoneRow = () => {
-    setValues({ ...values, phones: [...values.phones, makeEmptyPhoneRow()] });
+    setValues({ ...values, phones: appendRow(values.phones, makeEmptyPhoneRow) });
   };
 
   const removePhoneRow = (index) => {
-    const updatedPhones = values.phones.filter((_, i) => i !== index);
-    setValues({ ...values, phones: updatedPhones.length > 0 ? updatedPhones : [makeEmptyPhoneRow()] });
+    setValues({ ...values, phones: removeRowAt(values.phones, index, makeEmptyPhoneRow) });
   };
 
   const handleNewContact = async (event) => {
