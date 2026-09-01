@@ -14,13 +14,11 @@ const Contact = ({contact, deleteContact}) => {
   const primaryEmail = contact.emails?.[0];
   const primaryPhone = contact.phones?.[0];
 
-  const primaryEmailText = primaryEmail
-    ? `${primaryEmail.label ? primaryEmail.label + ': ' : ''}${primaryEmail.email.substring(0, 20)}`
-    : '';
+  const emailLabelPrefix = primaryEmail?.label ? `${primaryEmail.label}: ` : '';
+  const primaryEmailText = primaryEmail ? `${emailLabelPrefix}${primaryEmail.email.substring(0, 20)}` : '';
 
-  const primaryPhoneText = primaryPhone
-    ? `${primaryPhone.label ? primaryPhone.label + ': ' : ''}${primaryPhone.phone}`
-    : '';
+  const phoneLabelPrefix = primaryPhone?.label ? `${primaryPhone.label}: ` : '';
+  const primaryPhoneText = primaryPhone ? `${phoneLabelPrefix}${primaryPhone.phone}` : '';
 
   return (
     <Link to={`/contacts/${contact.id}`} className="contact__item">

@@ -5,11 +5,39 @@ const API_URL = "/api/contacts";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+let idCounter = 0;
+
+export const makeId = () => (typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `row-${Date.now()}-${++idCounter}`);
+
+export const makeEmptyEmailRow = () => ({ label: '', email: '', _key: makeId() });
+export const makeEmptyPhoneRow = () => ({ label: '', phone: '', _key: makeId() });
+
+export function updateRowAt(rows, index, field, value) {
+    const updated = [...rows];
+    updated[index] = { ...updated[index], [field]: value };
+    return updated;
+}
+
+export function appendRow(rows, makeRow) {
+    return [...rows, makeRow()];
+}
+
+export function removeRowAt(rows, index, makeRow) {
+    const updated = rows.filter((_, i) => i !== index);
+    return updated.length > 0 ? updated : [makeRow()];
+}
+
 function validateContactId(id) {
     if (typeof id !== 'string' || !UUID_PATTERN.test(id)) {
         throw new Error('Invalid contact id');
     }
     return id;
+}
+
+function buildContactResourceUrl(validatedId) {
+    return `${API_URL}/${encodeURIComponent(validatedId)}`;
 }
 
 export async function saveContact(contact) {
@@ -25,13 +53,13 @@ export async function getContacts(page = 0, size = 10, search = '') {
 }
 
 export async function getContact(id) {
-    const contactId = validateContactId(id);
-    return await axios.get(`${API_URL}/${encodeURIComponent(contactId)}`, { withCredentials: true });
+    const validatedId = validateContactId(id);
+    return await axios.get(buildContactResourceUrl(validatedId), { withCredentials: true });
 }
 
 export async function updateContact(id, contact) {
-    const contactId = validateContactId(id);
-    return await axios.put(`${API_URL}/${encodeURIComponent(contactId)}`, contact, {
+    const validatedId = validateContactId(id);
+    return await axios.put(buildContactResourceUrl(validatedId), contact, {
         withCredentials: true,
         headers: { 'X-XSRF-TOKEN': getCsrfToken() }
     });
@@ -45,8 +73,8 @@ export async function updatePhoto(formData) {
 }
 
 export async function deleteContact(id) {
-    const contactId = validateContactId(id);
-    return await axios.delete(`${API_URL}/${encodeURIComponent(contactId)}`, {
+    const validatedId = validateContactId(id);
+    return await axios.delete(buildContactResourceUrl(validatedId), {
         withCredentials: true,
         headers: { 'X-XSRF-TOKEN': getCsrfToken() }
     });

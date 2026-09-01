@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header'
 import ContactList from './components/ContactList'
-import { getContacts, saveContact, updatePhoto, updateContact as updateContactApi, deleteContact, getProfile, changePassword } from './api/ContactService';
+import { getContacts, saveContact, updatePhoto, updateContact as updateContactApi, deleteContact, getProfile, changePassword, makeEmptyEmailRow, makeEmptyPhoneRow, updateRowAt, appendRow, removeRowAt } from './api/ContactService';
+import ContactDetail, { EmailRowsEditor, PhoneRowsEditor } from './components/ContactDetail';
 import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
-import ContactDetail from './components/ContactDetail';
 import { toastError, toastSuccess } from './api/ToastService';
 import { ToastContainer } from 'react-toastify';
 import { AuthProvider } from './components/AuthContext';
@@ -12,9 +12,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
 import Registration from './components/Registration';
 
-const makeId = () => (typeof crypto !== 'undefined' && crypto.randomUUID
-  ? crypto.randomUUID()
-  : `row-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
 function Profile() {
   const modalRef = useRef();
@@ -163,8 +160,8 @@ function App() {
     title: '',
     address: '',
     status: '',
-    emails: [{ label: '', email: '', _key: makeId() }],
-    phones: [{ label: '', phone: '', _key: makeId() }],
+    emails: [makeEmptyEmailRow()],
+    phones: [makeEmptyPhoneRow()],
   });
 
   const location = useLocation();
@@ -213,35 +210,28 @@ function App() {
   const onChange = (event) => {
     setValues({ ...values, [event.target.name]: event.target.value });
   };
-
   const onEmailChange = (index, field, value) => {
-    const updatedEmails = [...values.emails];
-    updatedEmails[index] = { ...updatedEmails[index], [field]: value };
-    setValues({ ...values, emails: updatedEmails });
+    setValues({ ...values, emails: updateRowAt(values.emails, index, field, value) });
   };
 
   const addEmailRow = () => {
-    setValues({ ...values, emails: [...values.emails, { label: '', email: '', _key: makeId() }] });
+    setValues({ ...values, emails: appendRow(values.emails, makeEmptyEmailRow) });
   };
 
   const removeEmailRow = (index) => {
-    const updatedEmails = values.emails.filter((_, i) => i !== index);
-    setValues({ ...values, emails: updatedEmails.length > 0 ? updatedEmails : [{ label: '', email: '', _key: makeId() }] });
+    setValues({ ...values, emails: removeRowAt(values.emails, index, makeEmptyEmailRow) });
   };
 
   const onPhoneChange = (index, field, value) => {
-    const updatedPhones = [...values.phones];
-    updatedPhones[index] = { ...updatedPhones[index], [field]: value };
-    setValues({ ...values, phones: updatedPhones });
+    setValues({ ...values, phones: updateRowAt(values.phones, index, field, value) });
   };
 
   const addPhoneRow = () => {
-    setValues({ ...values, phones: [...values.phones, { label: '', phone: '', _key: makeId() }] });
+    setValues({ ...values, phones: appendRow(values.phones, makeEmptyPhoneRow) });
   };
 
   const removePhoneRow = (index) => {
-    const updatedPhones = values.phones.filter((_, i) => i !== index);
-    setValues({ ...values, phones: updatedPhones.length > 0 ? updatedPhones : [{ label: '', phone: '', _key: makeId() }] });
+    setValues({ ...values, phones: removeRowAt(values.phones, index, makeEmptyPhoneRow) });
   };
 
   const handleNewContact = async (event) => {
@@ -281,8 +271,8 @@ function App() {
       title: '',
       address: '',
       status: '',
-      emails: [{ label: '', email: '', _key: makeId() }],
-      phones: [{ label: '', phone: '', _key: makeId() }],
+      emails: [makeEmptyEmailRow()],
+      phones: [makeEmptyPhoneRow()],
     });
     setFile(undefined);
     if (fileRef.current) {
@@ -408,108 +398,10 @@ function App() {
                 </div>
 
                 <div className="divider" style={{ margin: '1rem 0' }}></div>
-                <span className="details" style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Email Addresses</span>
-                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.35rem', fontSize: '0.8rem', color: '#888' }}>
-                  <span style={{ flex: '0 0 35%' }}>Label</span>
-                  <span style={{ flex: 1 }}>Email</span>
-                </div>
-                {values.emails.map((emailRow, index) => (
-                  <div key={emailRow._key} style={{ marginBottom: '0.6rem' }}>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                      <select
-                        style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
-                        value={emailRow.label}
-                        onChange={(e) => onEmailChange(index, 'label', e.target.value)}
-                        aria-label={`Email label for entry ${index + 1}`}
-                      >
-                        <option value="">Select label</option>
-                        <option value="Work">Work</option>
-                        <option value="Personal">Personal</option>
-                        <option value="Home">Home</option>
-                        <option value="Other">Other</option>
-                      </select>
-                      <input
-                        type="email"
-                        style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
-                        value={emailRow.email}
-                        onChange={(e) => onEmailChange(index, 'email', e.target.value)}
-                        aria-label={`Email address for entry ${index + 1}`}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
-                      {index === values.emails.length - 1 ? (
-                        <button
-                          type="button"
-                          className="btn"
-                          style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
-                          onClick={addEmailRow}
-                        >
-                          + Add another email
-                        </button>
-                      ) : <span></span>}
-                      <button
-                        type="button"
-                        className="btn btn-danger"
-                        style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
-                        onClick={() => removeEmailRow(index)}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <EmailRowsEditor emails={values.emails} onChange={onEmailChange} onAdd={addEmailRow} onRemove={removeEmailRow} />
 
                 <div className="divider" style={{ margin: '1rem 0' }}></div>
-                <span className="details" style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Phone Numbers</span>
-                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.35rem', fontSize: '0.8rem', color: '#888' }}>
-                  <span style={{ flex: '0 0 35%' }}>Label</span>
-                  <span style={{ flex: 1 }}>Phone</span>
-                </div>
-                {values.phones.map((phoneRow, index) => (
-                  <div key={phoneRow._key} style={{ marginBottom: '0.6rem' }}>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                      <select
-                        style={{ flex: '0 0 35%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
-                        value={phoneRow.label}
-                        onChange={(e) => onPhoneChange(index, 'label', e.target.value)}
-                        aria-label={`Phone label for entry ${index + 1}`}
-                      >
-                        <option value="">Select label</option>
-                        <option value="Work">Work</option>
-                        <option value="Home">Home</option>
-                        <option value="Personal">Personal</option>
-                        <option value="Other">Other</option>
-                      </select>
-                      <input
-                        type="text"
-                        style={{ flex: 1, padding: '0.55rem', borderRadius: '6px', border: '1px solid #ccc' }}
-                        value={phoneRow.phone}
-                        onChange={(e) => onPhoneChange(index, 'phone', e.target.value)}
-                        aria-label={`Phone number for entry ${index + 1}`}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
-                      {index === values.phones.length - 1 ? (
-                        <button
-                          type="button"
-                          className="btn"
-                          style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
-                          onClick={addPhoneRow}
-                        >
-                          + Add another phone
-                        </button>
-                      ) : <span></span>}
-                      <button
-                        type="button"
-                        className="btn btn-danger"
-                        style={{ padding: '0.3rem 0.9rem', fontSize: '0.85rem' }}
-                        onClick={() => removePhoneRow(index)}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <PhoneRowsEditor phones={values.phones} onChange={onPhoneChange} onAdd={addPhoneRow} onRemove={removePhoneRow} />
 
                 <div className="form_footer">
                   <button onClick={handleCancelNewContact} type='button' className="btn btn-danger">Cancel</button>
