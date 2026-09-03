@@ -39,5 +39,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: >
           mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-          -Dsonar.sources=src/main/java,../contact-management-frontend/src
-          -Dsonar.exclusions=../contact-management-frontend/node_modules/**,../contact-management-frontend/dist/*
+          -Dsonar.projectBaseDir=..
+          -Dsonar.sources="Contact Management System/src/main/java,contact-management-frontend/src"
+          -Dsonar.exclusions="contact-management-frontend/node_modules/**,contact-management-frontend/dist/*"
