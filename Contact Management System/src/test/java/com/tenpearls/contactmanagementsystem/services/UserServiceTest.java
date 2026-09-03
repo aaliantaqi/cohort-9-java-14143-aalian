@@ -42,8 +42,6 @@ class UserServiceTest {
         existingUser.setPassword("encoded-old-password");
     }
 
-    // ---------- getUsers ----------
-
     @Test
     void getUsers_returnsAllUsers() {
         when(userRepository.findAll()).thenReturn(List.of(existingUser));
@@ -53,8 +51,6 @@ class UserServiceTest {
         assertEquals(1, result.size());
         assertEquals("testuser@example.com", result.get(0).getEmail());
     }
-
-    // ---------- getUser ----------
 
     @Test
     void getUser_returnsUser_whenFound() {
@@ -71,8 +67,6 @@ class UserServiceTest {
 
         assertThrows(RuntimeException.class, () -> userService.getUser(999));
     }
-
-    // ---------- updateUser ----------
 
     @Test
     void updateUser_updatesFields_whenNoEmailOrPhoneConflict() {
@@ -123,6 +117,36 @@ class UserServiceTest {
     }
 
     @Test
+    void updateUser_throwsException_whenEmailMatchesAnotherUsersPhoneField() {
+        User updatedData = new User();
+        updatedData.setEmail("taken@example.com");
+
+        User otherUser = new User();
+        otherUser.setId(2);
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmail("taken@example.com")).thenReturn(null);
+        when(userRepository.findByPhone("taken@example.com")).thenReturn(otherUser);
+
+        assertThrows(IllegalArgumentException.class, () -> userService.updateUser(1, updatedData));
+    }
+
+    @Test
+    void updateUser_throwsException_whenPhoneMatchesAnotherUsersEmailField() {
+        User updatedData = new User();
+        updatedData.setPhone("03001234567");
+
+        User otherUser = new User();
+        otherUser.setId(2);
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByPhone("03001234567")).thenReturn(null);
+        when(userRepository.findByEmail("03001234567")).thenReturn(otherUser);
+
+        assertThrows(IllegalArgumentException.class, () -> userService.updateUser(1, updatedData));
+    }
+
+    @Test
     void updateUser_encodesNewPassword_whenPasswordProvided() {
         User updatedData = new User();
         updatedData.setEmail("testuser@example.com");
@@ -140,7 +164,6 @@ class UserServiceTest {
         assertEquals("encoded-new-password", result.getPassword());
     }
 
-    // ---------- deleteUser ----------
 
     @Test
     void deleteUser_deletes_whenUserExists() {
@@ -159,7 +182,6 @@ class UserServiceTest {
         verify(userRepository, never()).deleteById(any());
     }
 
-    // ---------- addUser (registration) ----------
 
     @Test
     void addUser_createsUser_whenEmailIsAvailable() {
@@ -245,8 +267,6 @@ class UserServiceTest {
         assertThrows(IllegalArgumentException.class, () -> userService.addUser(request));
     }
 
-    // ---------- getUserByUsername (looks up by email or phone) ----------
-
     @Test
     void getUserByUsername_returnsUser_whenFoundByEmail() {
         when(userRepository.findByEmailOrPhone("testuser@example.com")).thenReturn(existingUser);
@@ -263,7 +283,6 @@ class UserServiceTest {
         assertThrows(RuntimeException.class, () -> userService.getUserByUsername("ghost"));
     }
 
-    // ---------- changePassword ----------
 
     @Test
     void changePassword_updatesPassword_whenCurrentPasswordMatches() {

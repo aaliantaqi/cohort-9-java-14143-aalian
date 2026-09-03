@@ -59,8 +59,6 @@ class ContactServiceTest {
         return p;
     }
 
-    // ---------- getAllContacts ----------
-
     @Test
     void getAllContacts_throwsException_whenPageIsNegative() {
         assertThrows(IllegalArgumentException.class,
@@ -104,8 +102,6 @@ class ContactServiceTest {
         verify(contactRepo).searchByOwnerIdAndNameContainingIgnoreCase(eq(1), eq("john"), any(PageRequest.class));
     }
 
-    // ---------- getContact ----------
-
     @Test
     void getContact_returnsContact_whenFoundAndOwnedByUser() {
         Contact contact = new Contact();
@@ -135,8 +131,6 @@ class ContactServiceTest {
         assertThrows(RuntimeException.class,
                 () -> contactService.getContact("abc-123", "ghost"));
     }
-
-    // ---------- createContact ----------
 
     @Test
     void createContact_setsOwnerAndSaves() {
@@ -176,8 +170,6 @@ class ContactServiceTest {
         assertEquals("12345", result.getPhones().get(0).getPhone());
     }
 
-    // ---------- deleteContact ----------
-
     @Test
     void deleteContact_deletesWhenFoundAndOwned() {
         Contact contact = new Contact();
@@ -201,8 +193,6 @@ class ContactServiceTest {
 
         verify(contactRepo, never()).delete(any());
     }
-
-    // ---------- updateContact ----------
 
     @Test
     void updateContact_updatesBasicFieldsAndSaves() {
@@ -258,7 +248,6 @@ class ContactServiceTest {
         assertEquals(1, result.getPhones().size());
         assertEquals("99999", result.getPhones().get(0).getPhone());
 
-        // the old email/phone must be gone, not just appended to
         assertFalse(result.getEmails().stream().anyMatch(e -> e.getEmail().equals("old@example.com")));
         assertFalse(result.getPhones().stream().anyMatch(p -> p.getPhone().equals("00000")));
     }
@@ -270,7 +259,7 @@ class ContactServiceTest {
         existing.setEmails(new ArrayList<>(List.of(labeledEmail("Personal", "old@example.com"))));
         existing.setPhones(new ArrayList<>(List.of(labeledPhone("Home", "00000"))));
 
-        Contact updatedData = new Contact(); // no emails/phones set - defaults to empty lists
+        Contact updatedData = new Contact();
 
         when(userRepository.findByEmailOrPhone("testuser@example.com")).thenReturn(testUser);
         when(contactRepo.findByIdAndOwnerId("abc-123", 1)).thenReturn(Optional.of(existing));
@@ -282,8 +271,6 @@ class ContactServiceTest {
         assertTrue(result.getPhones().isEmpty());
     }
 
-    // ---------- uploadPhoto ----------
-
     @Test
     void uploadPhoto_throwsException_whenFileIsEmpty() {
         MockMultipartFile emptyFile = new MockMultipartFile("file", "", "image/png", new byte[0]);
@@ -294,7 +281,7 @@ class ContactServiceTest {
 
     @Test
     void uploadPhoto_throwsException_whenFileTooLarge() {
-        byte[] bigContent = new byte[6 * 1024 * 1024]; // 6MB, exceeds 5MB limit
+        byte[] bigContent = new byte[6 * 1024 * 1024];
         MockMultipartFile bigFile = new MockMultipartFile("file", "photo.png", "image/png", bigContent);
 
         assertThrows(IllegalArgumentException.class,
