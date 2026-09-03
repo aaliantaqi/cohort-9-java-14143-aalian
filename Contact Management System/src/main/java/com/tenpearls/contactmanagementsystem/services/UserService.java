@@ -6,6 +6,7 @@ import com.tenpearls.contactmanagementsystem.repositories.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import java.util.function.Function;
 import java.util.Objects;
 
 import java.util.List;
@@ -62,10 +63,11 @@ public class UserService {
 
     public void deleteUser(Integer id){
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found with id: " + id);
+            throw new java.util.NoSuchElementException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
     }
+
     public User updateUser(Integer id, User updatedData) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
@@ -80,22 +82,10 @@ public class UserService {
         }
 
         if (normalizedEmail != null) {
-            User conflict = userRepository.findByEmail(normalizedEmail);
-            if (conflict == null) {
-                conflict = userRepository.findByPhone(normalizedEmail);
-            }
-            if (conflict != null && !Objects.equals(conflict.getId(), id)) {
-                throw new IllegalArgumentException("Email already in use: " + normalizedEmail);
-            }
+            ensureNoConflict(normalizedEmail, id, userRepository::findByEmail, userRepository::findByPhone, "Email");
         }
         if (normalizedPhone != null) {
-            User conflict = userRepository.findByPhone(normalizedPhone);
-            if (conflict == null) {
-                conflict = userRepository.findByEmail(normalizedPhone);
-            }
-            if (conflict != null && !Objects.equals(conflict.getId(), id)) {
-                throw new IllegalArgumentException("Phone already in use: " + normalizedPhone);
-            }
+            ensureNoConflict(normalizedPhone, id, userRepository::findByPhone, userRepository::findByEmail, "Phone");
         }
 
         existingUser.setFirstname(updatedData.getFirstname());
@@ -113,9 +103,20 @@ public class UserService {
     public User getUserByUsername(String identifier) {
         User user = userRepository.findByEmailOrPhone(identifier);
         if (user == null) {
-            throw new RuntimeException("User not found: " + identifier);
+            throw new java.util.NoSuchElementException("User not found: " + identifier);
         }
         return user;
+    }
+
+    private void ensureNoConflict(String value, Integer id, Function<String, User> primaryLookup,
+                                  Function<String, User> secondaryLookup, String fieldLabel) {
+        User conflict = primaryLookup.apply(value);
+        if (conflict == null) {
+            conflict = secondaryLookup.apply(value);
+        }
+        if (conflict != null && !Objects.equals(conflict.getId(), id)) {
+            throw new IllegalArgumentException(fieldLabel + " already in use: " + value);
+        }
     }
 
     public void changePassword(String identifier, String currentPassword, String newPassword) {

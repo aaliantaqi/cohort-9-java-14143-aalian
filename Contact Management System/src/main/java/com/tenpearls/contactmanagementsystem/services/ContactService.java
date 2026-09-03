@@ -21,7 +21,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import static com.tenpearls.contactmanagementsystem.constant.Constant.PHOTO_DIRECTORY;
@@ -36,7 +36,7 @@ public class ContactService {
     private final ContactRepo contactRepo;
     private final UserRepository userRepository;
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    private static final long MAX_FILE_SIZE = 5L * 1024 * 1024; // 5 MB
     private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/jpeg", "image/png");
 
     public class ContactNotFoundException extends RuntimeException {
@@ -106,12 +106,12 @@ public class ContactService {
     private User getOwner(String identifier) {
         User user = userRepository.findByEmailOrPhone(identifier);
         if (user == null) {
-            throw new RuntimeException("User not found: " + identifier);
+            throw new java.util.NoSuchElementException("User not found: " + identifier);
         }
         return user;
     }
 
-    private final Function<String, String> fileExtension = filename -> Optional.ofNullable(filename)
+    private final UnaryOperator<String> fileExtension = filename -> Optional.ofNullable(filename)
             .filter(name -> name.contains("."))
             .map(name -> "." + name.substring(name.lastIndexOf(".") + 1))
             .orElse(".png");

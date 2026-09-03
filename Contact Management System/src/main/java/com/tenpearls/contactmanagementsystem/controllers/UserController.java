@@ -152,7 +152,7 @@ public class UserController {
             Authentication authResult = authenticationManager.authenticate(authRequest);
 
             request.getSession().invalidate();
-            HttpSession newSession = request.getSession(true);
+            request.getSession(true);
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authResult);
